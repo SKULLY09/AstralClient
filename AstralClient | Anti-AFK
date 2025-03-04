@@ -1,0 +1,94 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
+
+local Window = OrionLib:MakeWindow({
+    Name = "Anti-AFK Script",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "Anti-AFK"
+})
+
+-- Create Anti-AFK Tab
+local AntiAfkTab = Window:MakeTab({
+    Name = "Anti-AFK",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Anti-AFK Toggle
+AntiAfkTab:AddToggle({
+    Name = "Anti-AFK Toggle",
+    Default = true,
+    Callback = function(Value)
+        if Value then
+            -- Enable Anti-AFK
+            local virtualUser = game:service'VirtualUser'
+
+            game:service'Players'.LocalPlayer.Idled:Connect(function()
+                virtualUser:CaptureController()
+                virtualUser:ClickButton2(Vector2.new())
+            end)
+            print("Anti-AFK Enabled")
+        else
+            -- Disable Anti-AFK
+            print("Anti-AFK Disabled")
+        end
+    end    
+})
+
+-- Create Client Info Tab
+local ClientInfoTab = Window:MakeTab({
+    Name = "Client Info",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Labels for Client Info
+local fpsLabel = ClientInfoTab:AddLabel("FPS: ")
+local pingLabel = ClientInfoTab:AddLabel("Ping: ")
+local sessionTimeLabel = ClientInfoTab:AddLabel("Session Up Time: ")
+
+-- FPS and Ping updates
+local FPS = {}
+local lastTick = tick()
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    local frameRate = tick()
+    for i = #FPS, 1, -1 do
+        FPS[i + 1] = (FPS[i] >= frameRate - 1) and FPS[i] or nil
+    end
+    FPS[1] = frameRate
+    local fps = #FPS
+    fps = math.floor(fps)
+    fpsLabel:Set("FPS: " .. fps)
+end)
+
+-- Update Ping every second
+spawn(function()
+    while true do
+        wait(1)
+        local ping = tonumber(game:GetService("Stats"):FindFirstChild("PerformanceStats").Ping:GetValue())
+        ping = math.floor(ping)
+        pingLabel:Set("Ping: " .. ping)
+    end
+end)
+
+-- Timer for Session Up Time
+local seconds = 0
+local minutes = 0
+local hours = 0
+
+spawn(function()
+    while true do
+        seconds = seconds + 1
+        wait(1)
+        if seconds >= 60 then
+            seconds = 0
+            minutes = minutes + 1
+        end
+        if minutes >= 60 then
+            minutes = 0
+            hours = hours + 1
+        end
+        sessionTimeLabel:Set(string.format("Session Up Time: %02d:%02d:%02d", hours, minutes, seconds))
+    end
+end)
