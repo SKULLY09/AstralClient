@@ -1,86 +1,102 @@
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local Window = OrionLib:MakeWindow({
-    Name = "Anti-AFK Script",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "Anti-AFK"
+-- Variables
+local Rep = game:GetService("ReplicatedStorage")
+local SI = Rep:FindFirstChild("ServerInfo") -- Added a safer check
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Stats = game:GetService("Stats")
+
+local LocalPlayer = Players.LocalPlayer
+local VirtualUser = game:GetService("VirtualUser")
+
+-- Rayfield UI Window
+local Window = Rayfield:CreateWindow({
+    Name = "AstralClient | Sols RNG",
+    LoadingTitle = "Rayfield Interface Suite",
+    LoadingSubtitle = "by Sirius",
+    Theme = "Default",
+    ConfigurationSaving = {
+       Enabled = true,
+       FolderName = nil,
+       FileName = "AstralClient"
+    },
+    KeySystem = false
 })
 
--- Create Anti-AFK Tab
-local AntiAfkTab = Window:MakeTab({
-    Name = "Anti-AFK",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- Local Tab
+local LocalTab = Window:CreateTab("Local", 4483362458)
 
 -- Anti-AFK Toggle
-AntiAfkTab:AddToggle({
-    Name = "Anti-AFK Toggle",
-    Default = true,
+local antiAfkConnection
+local AntiAFKToggle = LocalTab:CreateToggle({
+    Name = "Anti-AFK",
+    CurrentValue = true,
+    Flag = "AntiAFK",
     Callback = function(Value)
         if Value then
-            -- Enable Anti-AFK
-            local virtualUser = game:service'VirtualUser'
-
-            game:service'Players'.LocalPlayer.Idled:Connect(function()
-                virtualUser:CaptureController()
-                virtualUser:ClickButton2(Vector2.new())
-            end)
-            print("Anti-AFK Enabled")
+            if not antiAfkConnection then
+                antiAfkConnection = LocalPlayer.Idled:Connect(function()
+                    VirtualUser:CaptureController()
+                    VirtualUser:ClickButton2(Vector2.new())
+                end)
+                print("Anti-AFK Enabled")
+            end
         else
-            -- Disable Anti-AFK
-            print("Anti-AFK Disabled")
+            if antiAfkConnection then
+                antiAfkConnection:Disconnect()
+                antiAfkConnection = nil
+                print("Anti-AFK Disabled")
+            end
         end
-    end    
+    end,
 })
 
--- Create Client Info Tab
-local ClientInfoTab = Window:MakeTab({
-    Name = "Client Info",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
--- Labels for Client Info
-local fpsLabel = ClientInfoTab:AddLabel("FPS: ")
-local pingLabel = ClientInfoTab:AddLabel("Ping: ")
-local sessionTimeLabel = ClientInfoTab:AddLabel("Session Up Time: ")
-
--- FPS and Ping updates
-local FPS = {}
-local lastTick = tick()
-
-game:GetService("RunService").RenderStepped:Connect(function()
-    local frameRate = tick()
-    for i = #FPS, 1, -1 do
-        FPS[i + 1] = (FPS[i] >= frameRate - 1) and FPS[i] or nil
+-- **Fake Coin Textbox (Rayfield)**
+local FakeCoinInput = LocalTab:CreateInput({
+    Name = "Fake Coin",
+    PlaceholderText = "Enter fake coin value...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Value)
+        local gui = LocalPlayer:FindFirstChild("PlayerGui")
+        if gui and gui:FindFirstChild("MainInterface") then
+            local mainInterface = gui.MainInterface:GetChildren()
+            if #mainInterface >= 24 and mainInterface[24]:FindFirstChild("TextLabel") then
+                mainInterface[24].TextLabel.Text = Value
+            end
+        end
     end
-    FPS[1] = frameRate
-    local fps = #FPS
-    fps = math.floor(fps)
+})
+
+-- **Client Info Tab**
+local ClientInfoTab = Window:CreateTab("Client Info", 4483345998)
+
+-- Labels
+local fpsLabel = ClientInfoTab:CreateLabel("FPS: ")
+local pingLabel = ClientInfoTab:CreateLabel("Ping: ")
+local sessionTimeLabel = ClientInfoTab:CreateLabel("Session Up Time: ")
+
+-- FPS Counter
+local lastTick = tick()
+RunService.RenderStepped:Connect(function()
+    local fps = math.floor(1 / (tick() - lastTick))
+    lastTick = tick()
     fpsLabel:Set("FPS: " .. fps)
 end)
 
--- Update Ping every second
-spawn(function()
-    while true do
-        wait(1)
-        local ping = tonumber(game:GetService("Stats"):FindFirstChild("PerformanceStats").Ping:GetValue())
-        ping = math.floor(ping)
-        pingLabel:Set("Ping: " .. ping)
+-- Ping Updater
+task.spawn(function()
+    while task.wait(1) do
+        local ping = Stats:FindFirstChild("Network") and Stats.Network:FindFirstChild("Ping") and Stats.Network.Ping:GetValue() or 0
+        pingLabel:Set("Ping: " .. math.floor(ping))
     end
 end)
 
--- Timer for Session Up Time
-local seconds = 0
-local minutes = 0
-local hours = 0
-
-spawn(function()
-    while true do
+-- Session Timer
+local seconds, minutes, hours = 0, 0, 0
+task.spawn(function()
+    while task.wait(1) do
         seconds = seconds + 1
-        wait(1)
         if seconds >= 60 then
             seconds = 0
             minutes = minutes + 1
@@ -92,3 +108,6 @@ spawn(function()
         sessionTimeLabel:Set(string.format("Session Up Time: %02d:%02d:%02d", hours, minutes, seconds))
     end
 end)
+
+-- **Server Info Tab**
+local ServerInfoTab = Window:CreateTab("Server Info", 4483345998)
