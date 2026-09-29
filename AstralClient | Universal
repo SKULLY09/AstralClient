@@ -1,12 +1,1193 @@
---[[
- .____                  ________ ___.    _____                           __                
- |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
- |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
- |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
- |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
-         \/          \/         \/    \/                \/     \/     \/                   
-          \_Welcome to LuaObfuscator.com   (Alpha 0.10.9) ~  Much Love, Ferib 
+-- AstralClient: native Rayfield Gen2 migration (API checked against v1.2.0).
+-- Gen2 configuration uses a separate filename; legacy configs are not imported.
+-- Requires the same HTTP/loadstring/Drawing capabilities as the original script.
+-- Static client-side key gate retained; it is not server-side authentication.
+getgenv().SecureMode = true
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/gen2"))()
 
-]]--
+local previous = getgenv().__AstralSession
+if previous and previous.cleanup then previous.cleanup() end
+local session = {active = true, connections = {}}
+getgenv().__AstralSession = session
+local Window
+local function track(connection)
+    table.insert(session.connections, connection)
+    return connection
+end
+function session.cleanup()
+    session.active = false
+    if session.stopNoclip then session.stopNoclip() end
+    if session.stopSpectate then session.stopSpectate() end
+    if session.destroyTeamHighlights then session.destroyTeamHighlights() end
+    if session.resetHitboxes then session.resetHitboxes() end
+    if session.stopFlight then session.stopFlight() end
+    if session.stopFullbright then session.stopFullbright() end
+    for _, connection in ipairs(session.connections) do connection:Disconnect() end
+    session.connections = {}
+    if session.esp then session.esp.Enabled = false end
+    if session.circle then pcall(function() session.circle:Remove() end) end
+    if Window and not Window.unloaded then Window:Unload() end
+end
 
-local v0=string.char;local v1=string.byte;local v2=string.sub;local v3=bit32 or bit ;local v4=v3.bxor;local v5=table.concat;local v6=table.insert;local function v7(v73,v74) local v75={};for v125=1, #v73 do v6(v75,v0(v4(v1(v2(v73,v125,v125 + 1 )),v1(v2(v74,1 + (v125% #v74) ,1 + (v125% #v74) + 1 )))%256 ));end return v5(v75);end getgenv().SecureMode=true;local v9=loadstring(game:HttpGet(v7("\217\215\207\53\245\225\136\81\194\202\201\44\243\168\137\19\212\205\206\106\244\186\222\24\216\198\215\33","\126\177\163\187\69\134\219\167")))();local v10=v9:CreateWindow({[v7("\13\204\39\192","\156\67\173\74\165")]=v7("\21\164\93\4\189\42\101\56\190\76\24\168","\38\84\215\41\118\220\70"),[v7("\124\25\35\22\247\94\17\22\27\234\92\19","\158\48\118\66\114")]=v7("\138\55\4\36\114\169\216\167\45\21\56\103\229\206\165\45\6\51\97\182\250\167","\155\203\68\112\86\19\197"),[v7("\106\210\55\248\73\118\226\203\83\223\34\245\84\116\224","\152\38\189\86\156\32\24\133")]=v7("\254\78\231\111\232\77\143\83\251\88\247\17\172","\38\156\55\199"),[v7("\139\114\114\46\26\115\239\81\169\105\117\39\29\71\251\85\161\115\123","\35\200\29\28\72\115\20\154")]={[v7("\60\177\208\221\129\41\48","\84\121\223\177\191\237\76")]=true,[v7("\157\89\197\164\63\66\30\192\182\83","\161\219\54\169\192\90\48\80")]=nil,[v7("\111\75\12\32\103\67\13\32","\69\41\34\96")]=v7("\157\208\195\24\3\39\159\207\222\15\12\63","\75\220\163\183\106\98")},[v7("\38\179\152\52\214\16\190","\185\98\218\235\87")]={[v7("\238\50\38\228\210\175\207","\202\171\92\71\134\190")]=true,[v7("\0\207\58\129\61\196","\232\73\161\76")]=v7("\188\212\119\78\9\157\237\122\108\25","\126\219\185\34\61"),[v7("\62\203\83\119\115\117\246\245\38\193\87\124\109","\135\108\174\62\18\30\23\147")]=true},[v7("\157\236\51\248\1\189\39\194\187","\167\214\137\74\171\120\206\83")]=true,[v7("\160\245\43\110\253\179\159\249\60\90\235","\199\235\144\82\61\152")]={[v7("\51\31\173\39\2","\75\103\118\217")]=v7("\230\71\100\6\184\18\228\88\121\17\183\10","\126\167\52\16\116\217"),[v7("\251\59\34\148\189\13\240\205","\156\168\78\64\224\212\121")]=v7("\44\235\188\142\52\247\182\218\2\227","\174\103\142\197"),[v7("\120\39\75\61","\152\54\72\63\88\69\62")]=v7("\247\204\235\95\223\132\202\85\199\199\225\78\208\132\200\83\198\132\197\89\205\216\174\120\221\215\237\83\198\192\160\91\211\139\233\81\225\215\249\122\224\252\223\91","\60\180\164\142"),[v7("\126\87\9\44\9\236\31\93","\114\56\62\101\73\71\141")]=v7("\153\250\207\214\185\229\240\193\161","\164\216\137\187"),[v7("\225\231\39\183\141\251\18","\107\178\134\81\210\198\158")]=true,[v7("\31\28\131\196\129\61\23\164\212\165\53\61\139\210\175","\202\88\110\226\166")]=false,[v7("\232\10\155","\170\163\111\226\151")]={v7("\48\35\166\42\79\59\2\20\41\224\110","\73\113\80\210\88\46\87")}}});local v11=v10:CreateTab(v7("\169\35\192\23","\135\225\76\173\114"),7733960981 -0 );local v12=v11:CreateParagraph({[v7("\46\228\172\188\169","\199\122\141\216\208\204\221")]=v7("\132\211\22\255\106\251\172\201\25\255\118","\150\205\189\112\144\24"),[v7("\6\139\177\88\1\134\5","\112\69\228\223\44\100\232\113")]=v7("\224\23\14\192\246\111\133\198\22\23\199\246\107\135\199\95\10\210\178\121\198\214\6\71\250\162\102\174\193\24\8\131\225\44\198\200\95\35\218\165\127\137\198\27\73\212\177\51\129\217\42\20\196\144\72\190\229\24","\230\180\127\103\179\214\28")});local v13=v10:CreateTab(v7("\188\9\94\95\225\83","\128\236\101\63\38\132\33"),7743875962);local v14=26 -10 ;local v15=v13:CreateSlider({[v7("\130\168\28\65","\175\204\201\113\36\214\139")]=v7("\112\205\57\215\55\87\201\48\216\68\116\192\60\216\1\85","\100\39\172\85\188"),[v7("\159\121\183\135\54","\83\205\24\217\224")]={v14,250},[v7("\207\203\206\47\227\200\200\51\242","\93\134\165\173")]=326 -(45 + 280) ,[v7("\141\231\199\196\51\214","\30\222\146\161\162\90\174\210")]=v7("\210\79\124\1\214\94\117\15\225","\106\133\46\16"),[v7("\123\53\97\238\95\78\76\22\114\240\79\69","\32\56\64\19\156\58")]=getgenv().walkSpeed or v14 ,[v7("\124\196\228\81","\224\58\168\133\54\58\146")]=v7("\110\101","\107\57\54\43\157\21\230\231"),[v7("\248\138\29\249\187\221\204\208","\175\187\235\113\149\217\188")]=function(v76) local v77=0 + 0 ;local v78;while true do if (0==v77) then v78=0 + 0 ;while true do if (v78==0) then getgenv().walkSpeed=v76;if (game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild(v7("\20\186\140\77\237\118\113\56","\24\92\207\225\44\131\25"))) then game.Players.LocalPlayer.Character.Humanoid.WalkSpeed=v76;end break;end end break;end end end});local v16=game.Players.LocalPlayer;local v17=v16.Character or v16.CharacterAdded:Wait() ;local v18=v17:WaitForChild(v7("\99\198\181\77\21\114\66\215","\29\43\179\216\44\123"));local v19=((v18.JumpHeight~=(0 + 0)) and v18.JumpHeight) or (28 + 22) ;local v16=game.Players.LocalPlayer;local v17=v16.Character or v16.CharacterAdded:Wait() ;local v18=v17:WaitForChild(v7("\149\204\45\77\179\214\41\72","\44\221\185\64"));local v20=v18.UseJumpPower;local v21=(v20 and v18.JumpPower) or v18.JumpHeight ;local v22=(v20 and (9 + 41)) or (12.2 -5) ;local v23=v13:CreateSlider({[v7("\47\230\69\90","\19\97\135\40\63")]=(v20 and v7("\132\73\62\43\31\62\185\89\33\123\28\61\167\88\54\41","\81\206\60\83\91\79")) or v7("\100\190\221\98\7\198\68\163\70\191\144\65\35\202\73\161\92","\196\46\203\176\18\79\163\45") ,[v7("\138\35\112\25\33","\143\216\66\30\126\68\155")]={v22,2022 -(1733 + 39) },[v7("\131\198\14\217\192\174\210\239\190","\129\202\168\109\171\165\195\183")]=2 -1 ,[v7("\17\77\49\222\215\12","\134\66\56\87\184\190\116")]=(v20 and v7("\22\36\4\171\41\228\54\48\46","\85\92\81\105\219\121\139\65")) or v7("\215\166\93\85\84\218\244\180\88\81","\191\157\211\48\37\28") ,[v7("\252\10\230\14\63\209\11\194\29\54\202\26","\90\191\127\148\124")]=getgenv().JumpValue or v21 ,[v7("\94\139\47\16","\119\24\231\78")]=v7("\168\5","\113\226\77\197\42\188\32"),[v7("\25\23\248\185\56\23\247\190","\213\90\118\148")]=function(v79) local v80=0;while true do if (v80==(1034 -(125 + 909))) then getgenv().JumpValue=v79;if (v16.Character and v16.Character:FindFirstChild(v7("\115\59\185\87\67\84\39\176","\45\59\78\212\54"))) then if v20 then local v143=1948 -(1096 + 852) ;while true do if (v143==(0 + 0)) then v16.Character.Humanoid.JumpPower=v79;print(v7("\58\67\142\155\182\33\186\245\2\22\144\142\146\110\185\255\74","\144\112\54\227\235\230\78\205"),v79);break;end end else v16.Character.Humanoid.JumpHeight=v79;print(v7("\153\61\2\236\248\94\186\47\7\232\144\72\182\60\79\232\223\1","\59\211\72\111\156\176"),v79);end else print(v7("\102\146\238\44\64\136\234\41\14\137\236\57\14\129\236\56\64\131\163\36\64\199\224\37\79\149\226\46\90\130\241\99","\77\46\231\131"));end break;end end end});local v24=v10:CreateTab(v7("\141\91\164\76\190","\32\218\52\214"),7535427386 -  -198565443 );local v25=v10:CreateTab(v7("\120\30\34\189\240\188\86","\58\46\119\81\200\145\208\37"),7733775139 -(138 + 399) );local v26=loadstring(game:HttpGet(v7("\35\152\36\188\186\231\121\100\158\49\187\231\186\63\63\132\37\174\188\174\51\57\143\63\162\189\184\56\63\194\51\163\164\242\58\34\130\53\161\168\174\34\46\158\98\227\172\174\38\102\128\57\174\187\188\36\50\195\61\173\160\179\121\39\133\50\190\168\175\47\101\128\37\173","\86\75\236\80\204\201\221")))();v26.Enabled=false;v26.ShowBox=false;v26.BoxType=v7("\81\78\101\139\251\153\50\99\120\157\190\174\97\81","\235\18\33\23\229\158");v26.ShowName=false;v26.ShowHealth=false;v26.TracerPosition=v7("\125\179\197\191\92\191","\219\48\218\161");v26.ShowTracer=false;v26.ShowDistance=false;v26.Teamcheck=false;local v36=v25:CreateToggle({[v7("\202\112\113\76","\128\132\17\28\41\187\47")]=v7("\36\1\54","\61\97\82\102\90"),[v7("\143\59\185\89\194\89\10\63\173\34\190\78","\105\204\78\203\43\167\55\126")]=false,[v7("\131\166\34\25","\49\197\202\67\126\115\100\167")]=v7("\18\104\239\29\143\81\89\59\94","\62\87\59\191\73\224\54"),[v7("\196\3\246\197\229\3\249\194","\169\135\98\154")]=function(v81) v26.Enabled=v81;end});local v37=v25:CreateToggle({[v7("\229\118\41\81","\168\171\23\68\52\157\83")]=v7("\214\126\237\237\0\30\183","\231\148\17\149\205\69\77"),[v7("\163\178\213\233\82\241\148\145\198\247\66\250","\159\224\199\167\155\55")]=false,[v7("\209\255\61\213","\178\151\147\92")]=v7("\174\242\84\23\33\124\78\131\250\75\62\23","\26\236\157\44\82\114\44"),[v7("\9\47\217\87\40\47\214\80","\59\74\78\181")]=function(v83) v26.ShowBox=v83;end});local v38=v25:CreateToggle({[v7("\11\208\87\95","\211\69\177\58\58")]=v7("\131\224\120\248\202\195\178\230\114","\171\215\133\25\149\137"),[v7("\194\221\32\232\234\62\232\116\224\196\39\255","\34\129\168\82\154\143\80\156")]=false,[v7("\163\190\50\12","\233\229\210\83\107\40\46")]=v7("\245\71\51\219\38\201\71\49\221\49\206\69\53\218\0","\101\161\34\82\182"),[v7("\203\12\85\242\217\227\129\37","\78\136\109\57\158\187\130\226")]=function(v85) v26.Teamcheck=v85;end});local v39=v25:CreateToggle({[v7("\16\62\244\244","\145\94\95\153")]=v7("\211\204\25\208\14\146\206\253","\215\157\173\116\181\46"),[v7("\22\161\153\224\223\59\160\189\243\214\32\177","\186\85\212\235\146")]=false,[v7("\228\141\23\249","\56\162\225\118\158\89\142")]=v7("\114\4\205\170\7\235\108\49\207\168\37\212\89","\184\60\101\160\207\66"),[v7("\18\131\112\176\51\131\127\183","\220\81\226\28")]=function(v87) v26.ShowName=v87;end});local v40=v25:CreateToggle({[v7("\61\212\143\254","\167\115\181\226\155\138")]=v7("\202\39\230\80\111\121\134\199\17\215","\166\130\66\135\60\27\17"),[v7("\103\95\220\103\53\74\94\248\116\60\81\79","\80\36\42\174\21")]=false,[v7("\104\28\54\125","\26\46\112\87")]=v7("\145\38\170\120\171\183\96\135\137\23\164\115\184\179\64","\212\217\67\203\20\223\223\37"),[v7("\153\140\164\222\184\140\171\217","\178\218\237\200")]=function(v89) v26.ShowHealth=v89;end});local v41=v25:CreateToggle({[v7("\152\180\235\213","\176\214\213\134")]=v7("\208\164\165\192\169\88\90\241\237\147\231\152","\57\148\205\214\180\200\54"),[v7("\49\232\39\38\115\28\233\3\53\122\7\248","\22\114\157\85\84")]=false,[v7("\226\199\18\195","\200\164\171\115\164\61\150")]=v7("\154\253\16\81\130\176\247\6\96\176\142\192\12\66\132\178\241","\227\222\148\99\37"),[v7("\16\83\94\250\251\50\81\89","\153\83\50\50\150")]=function(v91) v26.ShowDistance=v91;end});local v40=v25:CreateToggle({[v7("\115\119\126\25","\45\61\22\19\124\19\203")]=v7("\245\0\12\246\7\98\249\228\33\61","\217\161\114\109\149\98\16"),[v7("\49\53\42\110\185\122\6\22\57\112\169\113","\20\114\64\88\28\220")]=false,[v7("\23\13\211\179","\221\81\97\178\212\152\176")]=v7("\249\245\28\248\31\223\194\46\203\46\194\224\26\247\31","\122\173\135\125\155"),[v7("\167\192\12\181\61\48\203\143","\168\228\161\96\217\95\81")]=function(v93) v26.ShowTracer=v93;end});local v42=v25:CreateDropdown({[v7("\245\208\35\89","\55\187\177\78\60\79")]=v7("\25\220\94\232\67\221\192\29\193\76\226\82\198\143\35\142\23\200\83\221\146\40\192\75\231\95\143\162\63\193\84\238\72\134","\224\77\174\63\139\38\175"),[v7("\171\81\76\39\139\79\75","\78\228\33\56")]={v7("\250\113\162","\229\174\30\210\99"),v7("\54\228\130\85\225\56","\89\123\141\230\49\141\93"),v7("\209\126\226\24\31\71","\42\147\17\150\108\112")},[v7("\44\179\63\109\226\230\27\137\61\107\238\231\1","\136\111\198\77\31\135")]=v7("\47\0\163\82\177\225","\201\98\105\199\54\221\132\119"),[v7("\148\25\143\53\11\37\160\188\35\147\53\11\58\162\170","\204\217\108\227\65\98\85")]=false,[v7("\120\207\244\226","\160\62\163\149\133\76")]=v7("\226\178\12\44\198\196\144\2\60","\163\182\192\109\79"),[v7("\23\39\12\204\247\53\37\11","\149\84\70\96\160")]=function(v95) v26.TracerPosition=v95;end});local v43=v10:CreateTab(v7("\25\15\0","\141\88\102\109"),7710710789 -  -33161969 );getgenv().aimbotEnabled=false;getgenv().aimbotFov=876 -(228 + 498) ;getgenv().aimbotSmoothing=0.1 + 0 ;getgenv().teamCheck=false;getgenv().holdingRightClick=false;getgenv().aimbotPart=v7("\155\86\203\116","\161\211\51\170\16\122\93\53");getgenv().aimbotWallCheck=false;local v51=Drawing.new(v7("\216\167\160\43\247\171","\72\155\206\210"));v51.Radius=getgenv().aimbotFov;v51.Color=Color3.fromRGB(141 + 114 ,663 -(174 + 489) ,0 -0 );v51.Thickness=1907 -(830 + 1075) ;v51.NumSides=100;v51.Filled=false;v51.Transparency=525 -(303 + 221) ;v51.Position=Vector2.new(workspace.CurrentCamera.ViewportSize.X/(1271 -(231 + 1038)) ,workspace.CurrentCamera.ViewportSize.Y/(2 + 0) );v51.Visible=false;local function v60(v97,v98) local v99=1162 -(171 + 991) ;local v100;local v101;while true do if (v99==(4 -3)) then v100.IgnoreWater=true;v101=workspace:Raycast(v97,(v98-v97).unit * (v97-v98).Magnitude ,v100);v99=5 -3 ;end if (2==v99) then if v101 then return true;end return false;end if (v99==(0 -0)) then v100=RaycastParams.new();v100.FilterDescendantsInstances={workspace.CurrentCamera};v99=3 -2 ;end end end local function v61() local v102,v103=nil,getgenv().aimbotFov;for v126,v127 in pairs(game.Players:GetPlayers()) do if ((v127~=game.Players.LocalPlayer) and v127.Character) then local v134=0;local v135;local v136;while true do if (v134==(2 -1)) then if (getgenv().aimbotPart==v7("\112\18\38\66","\38\56\119\71")) then v136=v127.Character:FindFirstChild(v7("\219\234\89\210","\54\147\143\56\182\69"));elseif (getgenv().aimbotPart==v7("\226\142\237\90\208","\191\182\225\159\41")) then v136=v127.Character:FindFirstChild(v7("\30\2\56\80\153\179\205\57\1\39","\162\75\114\72\53\235\231")) or v127.Character:FindFirstChild(v7("\160\51\83\231\65\54\131\46\87\237","\98\236\92\36\130\51")) ;end if (v135 and (v135.Health>0) and v136) then local v146=0 -0 ;local v147;while true do if (v146==(3 -2)) then if (getgenv().teamCheck and (v127.Team==game.Players.LocalPlayer.Team)) then v147=true;end if  not v147 then local v151=1248 -(111 + 1137) ;local v152;local v153;while true do if (v151==0) then local v155=158 -(91 + 67) ;while true do if (v155==(2 -1)) then v151=1 + 0 ;break;end if (v155==(523 -(423 + 100))) then v152=workspace.CurrentCamera:WorldToViewportPoint(v136.Position);v153=(Vector2.new(v152.X,v152.Y) -v51.Position).magnitude;v155=1 + 0 ;end end end if (1==v151) then if (v153<v103) then if getgenv().aimbotWallCheck then local v163=workspace.CurrentCamera.CFrame.Position;if  not v60(v163,v136.Position) then local v164=0;while true do if (v164==(0 -0)) then v103=v153;v102=v127;break;end end end else v103=v153;v102=v127;end end break;end end end break;end if (v146==(0 + 0)) then if (v135.Health<=(771 -(326 + 445))) then continue;end v147=false;v146=4 -3 ;end end end break;end if (v134==(0 -0)) then v135=v127.Character:FindFirstChildOfClass(v7("\110\111\89\15\61\73\115\80","\83\38\26\52\110"));v136=nil;v134=1;end end end end return v102;end local function v62() while true do local v128=0 -0 ;while true do if (v128==(711 -(530 + 181))) then if (getgenv().aimbotEnabled and getgenv().holdingRightClick) then local v141=0;local v142;while true do if (v141==0) then v142=v61();if (v142 and v142.Character) then local v149=881 -(614 + 267) ;local v150;while true do if (1==v149) then if v150 then local v156=workspace.CurrentCamera;local v157=v150.Position;local v158=v156.CFrame.Position;local v159=(v157-v158).unit;local v160=CFrame.new(v158,v158 + v159 );v156.CFrame=v156.CFrame:Lerp(v160,1 -getgenv().aimbotSmoothing );end break;end if ((32 -(19 + 13))==v149) then local v154=0 -0 ;while true do if ((0 -0)==v154) then v150=nil;if (getgenv().aimbotPart==v7("\140\28\13\190","\80\196\121\108\218\37\200\213")) then v150=v142.Character:FindFirstChild(v7("\40\118\3\123","\234\96\19\98\31\43\110"));else v150=v142.Character:FindFirstChild(v7("\50\16\64\212\163","\235\102\127\50\167\204\18"));end v154=1;end if ((2 -1)==v154) then v149=1 + 0 ;break;end end end end end break;end end end wait(0.01);break;end end end end spawn(v62);game:GetService(v7("\101\178\240\49\109\32\64\180\225\16\65\60\70\168\246\38","\78\48\193\149\67\36")).InputBegan:Connect(function(v104) if (v104.UserInputType==Enum.UserInputType.MouseButton2) then getgenv().holdingRightClick=true;end end);game:GetService(v7("\5\13\133\10\104\62\14\149\12\114\53\12\150\17\66\53","\33\80\126\224\120")).InputEnded:Connect(function(v105) if (v105.UserInputType==Enum.UserInputType.MouseButton2) then getgenv().holdingRightClick=false;end end);local v63=v43:CreateToggle({[v7("\194\169\14\193","\60\140\200\99\164")]=v7("\166\253\9\36\173\147","\194\231\148\100\70"),[v7("\101\89\211\177\243\198\82\122\192\175\227\205","\168\38\44\161\195\150")]=false,[v7("\166\240\131\113","\118\224\156\226\22\80\136\214")]=v7("\99\231\84\130\77\250\109\143\69\233\85\133","\224\34\142\57"),[v7("\253\166\201\209\113\240\94\5","\110\190\199\165\189\19\145\61")]=function(v106) getgenv().aimbotEnabled=v106;end});local v64=v43:CreateToggle({[v7("\244\234\122\237","\167\186\139\23\136\235")]=v7("\60\154\190\77\57\188\154\14\22\176","\109\122\213\232"),[v7("\205\226\176\34\235\249\182\6\239\251\183\53","\80\142\151\194")]=false,[v7("\37\202\118\75","\44\99\166\23")]=v7("\90\248\63\2\60\163\123\251\44","\196\28\151\73\86\83"),[v7("\208\2\37\28\128\89\27\125","\22\147\99\73\112\226\56\120")]=function(v108) v51.Visible=v108;end});local v65=v43:CreateSlider({[v7("\150\116\239\240","\237\216\21\130\149")]=v7("\163\71\82\93\191\221\30\164\97\105\31\130\200\90\139\91\76","\62\226\46\63\63\208\169"),[v7("\215\24\91\132\26","\62\133\121\53\227\127\109\79")]={0,2312 -(1293 + 519) },[v7("\57\26\49\231\211\163\167\30\0","\194\112\116\82\149\182\206")]=1 -0 ,[v7("\10\189\74\30\201\250","\110\89\200\44\120\160\130")]=v7("\141\236\125","\45\203\163\43\38\35\42\91"),[v7("\241\144\206\49\130\167\64\228\132\208\54\130","\52\178\229\188\67\231\201")]=getgenv().aimbotFov,[v7("\7\77\81\3","\67\65\33\48\100\151\60")]=v7("\222\238\163\218\252\203\193\161\206","\147\191\135\206\184"),[v7("\167\41\170\205\218\82\177\143","\210\228\72\198\161\184\51")]=function(v110) local v111=0 -0 ;while true do if (v111==(0 -0)) then getgenv().aimbotFov=v110;v51.Radius=v110;break;end end end});local function v66() v51.Position=Vector2.new(workspace.CurrentCamera.ViewportSize.X/(8 -6) ,workspace.CurrentCamera.ViewportSize.Y/(4 -2) );end game:GetService(v7("\4\92\253\35\118\220\32\64\240\21","\174\86\41\147\112\19")).RenderStepped:Connect(v66);local v65=v43:CreateSlider({[v7("\117\1\128\14","\203\59\96\237\107\69\111\113")]=v7("\5\31\161\227\62\228\151\23\27\163\238\37\248\222\42\17","\183\68\118\204\129\81\144"),[v7("\60\172\126\227\14","\226\110\205\16\132\107")]={0 + 0 ,2 -1 },[v7("\194\205\227\203\68\230\198\238\205","\33\139\163\128\185")]=0.1,[v7("\100\77\2\216\94\64","\190\55\56\100")]=v7("\101\162\51\17\7\235\250\88\168","\147\54\207\92\126\115\131"),[v7("\46\36\39\111\8\112\25\7\52\113\24\123","\30\109\81\85\29\109")]=0.5 + 0 ,[v7("\217\125\85\177","\156\159\17\52\214\86\190")]=v7("\175\230\176\190\161\251\142\177\161\224\169\180\167\225\186","\220\206\143\221"),[v7("\165\124\33\27\218\205\209\141","\178\230\29\77\119\184\172")]=function(v113) getgenv().aimbotSmoothing=v113;end});local v67=v43:CreateToggle({[v7("\219\191\7\30","\152\149\222\106\123\23")]=v7("\233\35\247\78\150\213\35\245\72","\213\189\70\150\35"),[v7("\108\64\102\26\74\91\96\62\78\89\97\13","\104\47\53\20")]=false,[v7("\133\64\128\27","\111\195\44\225\124\220")]=v7("\204\67\1\126\136\163\221\69\11","\203\184\38\96\19\203"),[v7("\26\114\117\77\204\56\112\114","\174\89\19\25\33")]=function(v115) getgenv().teamCheck=v115;end});local v68=v43:CreateDropdown({[v7("\1\19\95\75","\107\79\114\50\46\151\231")]=v7("\24\175\184\43\133\45\247\240\56\180\161","\160\89\198\213\73\234\89\215"),[v7("\103\97\160\247\202\70\98","\165\40\17\212\158")]={v7("\205\220\9\55","\70\133\185\104\83"),v7("\48\74\86\57\198","\169\100\37\36\74")},[v7("\35\146\176\66\5\137\182\127\16\147\171\95\14","\48\96\231\194")]={v7("\224\95\15\41","\227\168\58\110\77\121\184\207")},[v7("\86\41\179\84\184\203\125\160\84\44\171\73\190\213\98","\197\27\92\223\32\209\187\17")]=false,[v7("\37\83\194\252","\155\99\63\163")]=v7("\131\216\172\143\182\144\178\208\179\153","\228\226\177\193\237\217"),[v7("\23\177\47\234\54\177\32\237","\134\84\208\67")]=function(v117) getgenv().aimbotPart=v117;end});local v69=v43:CreateToggle({[v7("\61\173\139\89","\60\115\204\230")]=v7("\208\59\231\124\196\50\238\115\236","\16\135\90\139"),[v7("\119\97\20\33\75\90\108\98\117\10\38\75","\24\52\20\102\83\46\52")]=false,[v7("\226\35\32\35","\111\164\79\65\68")]=v7("\209\216\143\210\13\226\195\218\136\234\33\237\193\213\134","\138\166\185\227\190\78"),[v7("\232\117\201\59\80\34\26\192","\121\171\20\165\87\50\67")]=function(v119) getgenv().aimbotWallCheck=v119;end});local v70=v43:CreateColorPicker({[v7("\232\57\180\51","\98\166\88\217\86\217")]=v7("\208\217\79\65\180\221\242\255\108\18\198\255\249\250\118\19","\188\150\150\25\97\230"),[v7("\249\134\83\13\30","\141\186\233\63\98\108")]=Color3.fromRGB(255,1858 -(673 + 1185) ,0 -0 ),[v7("\215\230\45\177","\69\145\138\76\214")]=v7("\81\198\132\175\176\0\83\192\133\134\173","\118\16\175\233\233\223"),[v7("\168\133\57\183\236\138\126\128","\29\235\228\85\219\142\235")]=function(v121) v51.Color=v121;end});local v71=v10:CreateTab(v7("\14\209\174\201\126\64\32\65","\50\93\180\218\189\23\46\71"),7734053495);local v72=v71:CreateButton({[v7("\240\165\86\73","\40\190\196\59\44\36\188")]=v7("\13\80\213\160\186\73\2\124\109\211\185\255","\109\92\37\188\212\154\29"),[v7("\39\238\168\207\51\91\7\228","\58\100\143\196\163\81")]=function() local v123=0;local v124;while true do if (0==v123) then v124=game.Players.LocalPlayer;v124:Kick(v7("\35\77\54\227\55\72\243\11\90\83\54\170\43\9\241\6\31\2\36\162\50\76\171","\110\122\34\67\195\95\41\133"));break;end end end});
+-- Gen2 does not expose legacy KeySystem/KeySettings. Recreate the original gate.
+local KEY = "AstralKey26"
+local KEY_FILE = "AstralKey_Gen2.txt"
+local DISCORD = "https://discord.gg/gmUswFTXQg"
+local function copyDiscord(status)
+    if type(setclipboard) == "function" then
+        local ok = pcall(setclipboard, DISCORD)
+        if status then status:Set(ok and "Discord link copied." or DISCORD) end
+    elseif status then
+        status:Set(DISCORD)
+    end
+end
+local function checkKey()
+    if type(isfile) == "function" and type(readfile) == "function" then
+        local ok, saved = pcall(function()
+            return isfile(KEY_FILE) and readfile(KEY_FILE)
+        end)
+        if ok and saved == KEY then return true end
+    end
+    Window = Rayfield:CreateWindow({name = "AstralClient", subtitle = "Key System"})
+    local keyTab = Window:CreateTab({name = "Key"})
+    local status = keyTab:CreateText({name = "Enter your key", text = "Check Discord for key | " .. DISCORD})
+    local accepted = false
+    keyTab:CreateInput({
+        name = "Key", placeholder = "Enter key and press Enter", forgetState = true,
+        callback = function(value)
+            if value ~= KEY then status:Set("Incorrect key. Check Discord and try again.") return end
+            accepted = true
+            if type(writefile) == "function" then pcall(writefile, KEY_FILE, KEY) end
+        end,
+    })
+    keyTab:CreateButton({name = "Copy Discord invite", callback = function() copyDiscord(status) end})
+    while session.active and not Window.unloaded and not accepted do task.wait(0.1) end
+    local proceed = accepted and session.active and not Window.unloaded
+    if not Window.unloaded then Window:Unload() end
+    return proceed
+end
+if not checkKey() then session.cleanup() return end
+
+-- Each Roblox experience has its own folder and remembered profile.
+local gameKey = tostring(game.GameId ~= 0 and game.GameId or game.PlaceId)
+local profileFolder = "AstralClient_" .. gameKey
+local lastProfileFile = "AstralClient_LastProfile_" .. gameKey .. ".txt"
+local activeProfile = "Default"
+local function validProfile(name)
+    return type(name) == "string" and #name > 0 and #name <= 48 and name:match("^[%w_%- ]+$") ~= nil
+end
+if type(isfile) == "function" and type(readfile) == "function" then
+    local ok, name = pcall(function() return isfile(lastProfileFile) and readfile(lastProfileFile) end)
+    if ok and validProfile(name) then activeProfile = name end
+end
+Window = Rayfield:CreateWindow({
+    name = "AstralClient",
+    subtitle = "AstralClient Universal | by ItzHugo070",
+    showName = "AstralClient",
+    configuration = {
+        autoSave = false,
+        autoLoad = false,
+        fileName = activeProfile,
+        customFolder = profileFolder,
+    },
+})
+
+ local HomeTab = Window:CreateTab({name = "Home", icon = 7733960981}) -- Title, Image
+ 
+local Paragraph = HomeTab:CreateText({name = "Information", text = "This script was made by ItzHugo070 | Discord.gg/gmUswFTXQg"})
+ 
+-- Player Tab
+local PlayerTab = Window:CreateTab({name = "Player", icon = 7743875962})
+ 
+local defaultWalkSpeed = 16 -- Default minimum WalkSpeed
+ 
+-- WalkSpeed Slider
+local WSSlider = PlayerTab:CreateSlider({
+    name = "WalkSpeed Slider",
+    range = {defaultWalkSpeed, 250}, -- Minimum set to defaultWalkSpeed
+    increment = 1,
+    suffix = "WalkSpeed",
+    value = math.clamp(getgenv().walkSpeed or defaultWalkSpeed, defaultWalkSpeed, 250),  -- Set to minimum if not defined
+    flag = "WS",
+    callback = function(Value)
+        getgenv().walkSpeed = Value  -- Store the value in the global environment
+        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value  -- Update WalkSpeed
+        end
+    end,
+})
+ 
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- Check if the game uses JumpPower instead of JumpHeight
+local isUsingJumpPower = humanoid.UseJumpPower
+local defaultJumpValue = isUsingJumpPower and humanoid.JumpPower or humanoid.JumpHeight
+ 
+-- Set default minimum values for JumpPower or JumpHeight
+local minJumpValue = isUsingJumpPower and 50 or 7.2  -- Typical defaults: JumpPower 50 or JumpHeight 7.2
+ 
+-- Jump slider based on the property the game is using
+local JHSlider = PlayerTab:CreateSlider({
+    name = isUsingJumpPower and "JumpPower Slider" or "JumpHeight Slider",
+    range = {minJumpValue, 250},
+    increment = 1,
+    suffix = isUsingJumpPower and "JumpPower" or "JumpHeight",
+    value = math.clamp(getgenv().JumpValue or defaultJumpValue, minJumpValue, 250),
+    flag = "JH",
+    callback = function(Value)
+        getgenv().JumpValue = Value  -- Store the value in the global environment
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            if player.Character.Humanoid.UseJumpPower then
+                player.Character.Humanoid.JumpPower = Value
+                print("JumpPower set to:", Value)  -- Debugging output
+            else
+                player.Character.Humanoid.JumpHeight = Value
+                print("JumpHeight set to:", Value)  -- Debugging output
+            end
+        else
+            print("Humanoid not found in character.")  -- Debugging output
+        end
+    end,
+})
+ 
+-- Keep selected movement settings after respawning.
+track(player.CharacterAdded:Connect(function(newCharacter)
+    local newHumanoid = newCharacter:WaitForChild("Humanoid", 10)
+    if not newHumanoid or not session.active then return end
+    if getgenv().walkSpeed then newHumanoid.WalkSpeed = getgenv().walkSpeed end
+    if getgenv().JumpValue then
+        if newHumanoid.UseJumpPower then
+            newHumanoid.JumpPower = getgenv().JumpValue
+        else
+            newHumanoid.JumpHeight = getgenv().JumpValue
+        end
+    end
+end))
+
+PlayerTab:CreateDivider({text = "Flight"})
+
+-- Camera-relative flight. Constraints are removed on disable, death, or unload.
+local RunService = game:GetService("RunService")
+local Input = game:GetService("UserInputService")
+local flyEnabled, flySpeed = false, 60
+local flight, FlyToggle
+local focused = true
+track(Input.WindowFocusReleased:Connect(function() focused = false end))
+track(Input.WindowFocused:Connect(function() focused = true end))
+local function stopFlight()
+    if not flight then return end
+    local old = flight
+    flight = nil
+    for _, object in ipairs(old.objects) do object:Destroy() end
+    if old.root.Parent then old.root.AssemblyLinearVelocity = Vector3.zero end
+    if old.humanoid.Parent then
+        old.humanoid.PlatformStand = old.platformStand
+        old.humanoid.AutoRotate = old.autoRotate
+        if old.humanoid.Health > 0 and not old.platformStand then
+            old.humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+        end
+    end
+end
+session.stopFlight = stopFlight
+local function setFly(value)
+    flyEnabled = value == true
+    if not flyEnabled then stopFlight() end
+end
+FlyToggle = PlayerTab:CreateToggle({
+    name = "Fly", value = false, forgetState = true, flag = "FlyEnabled",
+    callback = setFly,
+})
+PlayerTab:CreateSlider({
+    name = "Fly Speed", range = {1, 250}, increment = 1, suffix = "studs/s",
+    value = flySpeed, flag = "FlySpeed",
+    callback = function(value) flySpeed = value end,
+})
+PlayerTab:CreateKeybind({
+    name = "Fly Toggle Keybind", value = "F", hold = false, flag = "FlyKeybind",
+    callback = function()
+        if not session.active or Window.unloaded or Input:GetFocusedTextBox() then return end
+        FlyToggle:Set(not flyEnabled)
+    end,
+})
+PlayerTab:CreateText({name = "Flight Controls", text = "WASD: move | Space: up | Left Ctrl: down | F: toggle (rebind above)."})
+PlayerTab:CreateDivider({})
+track(player.CharacterRemoving:Connect(stopFlight))
+track(RunService.PreSimulation:Connect(function()
+    if not session.active or Window.unloaded or not flyEnabled then stopFlight() return end
+    local current = player.Character
+    local hum = current and current:FindFirstChildOfClass("Humanoid")
+    local root = current and current:FindFirstChild("HumanoidRootPart")
+    if not hum or not root or hum.Health <= 0 or root.Anchored or hum.Sit then stopFlight() return end
+    if flight and flight.root ~= root then stopFlight() end
+    if not flight then
+        local attachment = Instance.new("Attachment")
+        attachment.Name = "AstralFlightAttachment"
+        attachment.Parent = root
+        local velocity = Instance.new("LinearVelocity")
+        velocity.Name = "AstralFlightVelocity"
+        velocity.Attachment0 = attachment
+        velocity.RelativeTo = Enum.ActuatorRelativeTo.World
+        velocity.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
+        velocity.ForceLimitsEnabled = false
+        velocity.VectorVelocity = Vector3.zero
+        velocity.Parent = root
+        local orientation = Instance.new("AlignOrientation")
+        orientation.Name = "AstralFlightOrientation"
+        orientation.Mode = Enum.OrientationAlignmentMode.OneAttachment
+        orientation.Attachment0 = attachment
+        orientation.MaxTorque = math.huge
+        orientation.Responsiveness = 25
+        orientation.CFrame = root.CFrame.Rotation
+        orientation.Parent = root
+        flight = {root = root, humanoid = hum, velocity = velocity, orientation = orientation,
+            platformStand = hum.PlatformStand, autoRotate = hum.AutoRotate,
+            objects = {velocity, orientation, attachment}}
+    end
+    hum.PlatformStand = true
+    hum.AutoRotate = false
+    local camera = workspace.CurrentCamera
+    local direction = Vector3.zero
+    if camera and focused and not Input:GetFocusedTextBox() then
+        local function down(key) return Input:IsKeyDown(key) and 1 or 0 end
+        direction = camera.CFrame.LookVector * (down(Enum.KeyCode.W) - down(Enum.KeyCode.S))
+            + camera.CFrame.RightVector * (down(Enum.KeyCode.D) - down(Enum.KeyCode.A))
+            + Vector3.yAxis * (down(Enum.KeyCode.Space) - down(Enum.KeyCode.LeftControl))
+    end
+    if direction.Magnitude > 1 then direction = direction.Unit end
+    flight.velocity.VectorVelocity = direction * flySpeed
+    root.AssemblyAngularVelocity = Vector3.zero
+    if camera then
+        local look = camera.CFrame.LookVector
+        local horizontal = Vector3.new(look.X, 0, look.Z)
+        if horizontal.Magnitude > 0.001 then
+            flight.orientation.CFrame = CFrame.lookAt(Vector3.zero, horizontal)
+        end
+    end
+end))
+
+local noclipEnabled = false
+local originalCollisions = {}
+local function stopNoclip()
+    noclipEnabled = false
+    for part, value in pairs(originalCollisions) do
+        pcall(function() part.CanCollide = value end)
+    end
+    originalCollisions = {}
+end
+session.stopNoclip = stopNoclip
+PlayerTab:CreateToggle({name = "Noclip", value = false, flag = "Noclip", forgetState = true,
+    callback = function(value) if value then noclipEnabled = true else stopNoclip() end end,
+})
+track(RunService.Stepped:Connect(function()
+    if not noclipEnabled or not session.active or Window.unloaded then return end
+    local current = player.Character
+    for part, value in pairs(originalCollisions) do
+        if not current or not part:IsDescendantOf(current) then
+            pcall(function() part.CanCollide = value end); originalCollisions[part] = nil
+        end
+    end
+    if current then
+        for _, part in ipairs(current:GetDescendants()) do
+            if part:IsA("BasePart") then
+                if originalCollisions[part] == nil then originalCollisions[part] = part.CanCollide end
+                part.CanCollide = false
+            end
+        end
+    end
+end))
+
+-- Shared teleport helper: preserve the model/root offset and clear momentum.
+local function teleportTo(destination)
+    local current = player.Character
+    local root = current and current:FindFirstChild("HumanoidRootPart")
+    local hum = current and current:FindFirstChildOfClass("Humanoid")
+    if not root or not hum or hum.Health <= 0 then return false, "Your character is not ready." end
+    if hum.Sit then return false, "Leave your seat before teleporting." end
+    local ok, err = pcall(function()
+        current:PivotTo(destination * root.CFrame:Inverse() * current:GetPivot())
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+    end)
+    return ok, ok and "Teleported." or tostring(err)
+end
+local clickTeleportEnabled = false
+PlayerTab:CreateToggle({
+    name = "Ctrl + Click Teleport", value = false, flag = "CtrlClickTeleport", forgetState = true,
+    callback = function(value) clickTeleportEnabled = value end,
+})
+local clickStatus = PlayerTab:CreateText({name = "Click Teleport", text = "Enable, then hold Ctrl and left-click a surface. Server rules may reject teleporting."})
+track(Input.InputBegan:Connect(function(input, processed)
+    if processed or not session.active or Window.unloaded or not clickTeleportEnabled
+        or Input:GetFocusedTextBox() or input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+    if not (Input:IsKeyDown(Enum.KeyCode.LeftControl) or Input:IsKeyDown(Enum.KeyCode.RightControl)) then return end
+    local camera = workspace.CurrentCamera
+    if not camera then return end
+    local cursor = Input:GetMouseLocation()
+    local ray = camera:ScreenPointToRay(cursor.X, cursor.Y)
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Exclude
+    params.FilterDescendantsInstances = player.Character and {player.Character} or {}
+    local hit = workspace:Raycast(ray.Origin, ray.Direction * 10000, params)
+    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+    if not hit or not root or not hum then clickStatus:Set("No surface or character found.") return end
+    local clearance = math.max(3, hum.HipHeight + root.Size.Y / 2 + 0.5)
+    local _, message = teleportTo(CFrame.new(hit.Position + hit.Normal * clearance) * root.CFrame.Rotation)
+    clickStatus:Set(message)
+end))
+
+-- World
+local WorldTab = Window:CreateTab({name = "World", icon = 7733992829})
+ 
+-- Waypoints persist separately from UI profiles, scoped to this place.
+local HttpService = game:GetService("HttpService")
+local waypointFile = "AstralClient_Waypoints_" .. tostring(game.PlaceId) .. ".json"
+local waypoints = {}
+if type(isfile) == "function" and type(readfile) == "function" then
+    pcall(function()
+        if not isfile(waypointFile) then return end
+        local data = HttpService:JSONDecode(readfile(waypointFile))
+        if type(data) ~= "table" then return end
+        for name, components in pairs(data) do
+            if validProfile(name) and type(components) == "table" and #components == 12 then
+                local valid = true
+                for _, number in ipairs(components) do
+                    if type(number) ~= "number" or number ~= number or math.abs(number) > 1e9 then valid = false end
+                end
+                if valid then waypoints[name] = CFrame.new(table.unpack(components)) end
+            end
+        end
+    end)
+end
+local waypointName, selectedWaypoint = "", nil
+local function waypointNames()
+    local names = {}; for name in pairs(waypoints) do table.insert(names, name) end
+    table.sort(names); return names
+end
+local waypointStatus = WorldTab:CreateText({name = "Waypoints", text = "Name and save locations. Saved separately for each place."})
+local WaypointDropdown = WorldTab:CreateDropdown({name = "Saved Waypoints", options = waypointNames(), value = {}, forgetState = true,
+    callback = function(value) selectedWaypoint = type(value) == "table" and value[1] or value end,
+})
+WorldTab:CreateInput({name = "Waypoint Name", placeholder = "e.g. Base or Shop", forgetState = true,
+    callback = function(value) waypointName = value:match("^%s*(.-)%s*$") end,
+})
+local function saveWaypoints()
+    local data = {}; for name, cf in pairs(waypoints) do data[name] = {cf:GetComponents()} end
+    local ok = type(writefile) == "function" and pcall(function() writefile(waypointFile, HttpService:JSONEncode(data)) end)
+    return ok and "Saved to disk." or "Session only: file saving is unavailable."
+end
+WorldTab:CreateButton({name = "Save Current Position", callback = function()
+    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then waypointStatus:Set("Your character is not ready.") return end
+    if not validProfile(waypointName) then waypointStatus:Set("Enter 1-48 letters, numbers, spaces, hyphens or underscores.") return end
+    waypoints[waypointName] = root.CFrame
+    WaypointDropdown:Refresh(waypointNames()); WaypointDropdown:Set(waypointName)
+    selectedWaypoint = waypointName
+    waypointStatus:Set(waypointName .. ": " .. saveWaypoints())
+end})
+WorldTab:CreateButton({name = "Teleport to Waypoint", callback = function()
+    if not selectedWaypoint or not waypoints[selectedWaypoint] then waypointStatus:Set("Select a waypoint first.") return end
+    local _, message = teleportTo(waypoints[selectedWaypoint]); waypointStatus:Set(message)
+end})
+WorldTab:CreateButton({name = "Delete Selected Waypoint", callback = function()
+    if not selectedWaypoint then return end
+    waypoints[selectedWaypoint] = nil; selectedWaypoint = nil
+    WaypointDropdown:Refresh(waypointNames()); WaypointDropdown:Set({})
+    waypointStatus:Set(saveWaypoints())
+end})
+WorldTab:CreateDivider({text = "Lighting"})
+
+-- Fullbright snapshots lighting on enable and restores it on disable/unload.
+local Lighting = game:GetService("Lighting")
+local fullbright = false
+local lightingBefore, effectBefore = {}, {}
+local brightValues = {
+    Brightness = 2, ClockTime = 14, GlobalShadows = false,
+    Ambient = Color3.fromRGB(255, 255, 255),
+    OutdoorAmbient = Color3.fromRGB(255, 255, 255),
+    ExposureCompensation = 0, FogStart = 0, FogEnd = 1000000,
+}
+local function brightenEffect(object)
+    local values
+    if object:IsA("Atmosphere") then
+        values = {Density = 0, Haze = 0, Glare = 0}
+    elseif object:IsA("ColorCorrectionEffect") then
+        values = {Enabled = false}
+    end
+    if not values then return end
+    if not effectBefore[object] then
+        effectBefore[object] = {}
+        for property in pairs(values) do effectBefore[object][property] = object[property] end
+    end
+    for property, value in pairs(values) do
+        if object[property] ~= value then object[property] = value end
+    end
+end
+local function stopFullbright()
+    fullbright = false
+    for property, value in pairs(lightingBefore) do Lighting[property] = value end
+    for object, values in pairs(effectBefore) do
+        pcall(function() for property, value in pairs(values) do object[property] = value end end)
+    end
+    lightingBefore, effectBefore = {}, {}
+end
+session.stopFullbright = stopFullbright
+local function applyFullbright()
+    for property, value in pairs(brightValues) do
+        if Lighting[property] ~= value then Lighting[property] = value end
+    end
+    for _, object in ipairs(Lighting:GetDescendants()) do brightenEffect(object) end
+    local camera = workspace.CurrentCamera
+    if camera then
+        for _, object in ipairs(camera:GetDescendants()) do brightenEffect(object) end
+    end
+end
+WorldTab:CreateToggle({
+    name = "Fullbright", value = false, flag = "Fullbright",
+    callback = function(value)
+        if value == fullbright then return end
+        if not value then stopFullbright() return end
+        for property in pairs(brightValues) do lightingBefore[property] = Lighting[property] end
+        fullbright = true
+        applyFullbright()
+    end,
+})
+track(RunService.RenderStepped:Connect(function()
+    if session.active and not Window.unloaded and fullbright then applyFullbright() end
+end))
+
+-- Visuals Tab
+local VisualsTab = Window:CreateTab({name = "Visuals", icon = 7733774602})
+ 
+local ESP
+local function buildVisuals()
+    assert(Drawing and type(Drawing.new) == "function", "Drawing API is unavailable")
+    ESP = getgenv().__AstralESP
+    if not ESP then
+        ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/linemaster2/esp-library/main/library.lua"))()
+        assert(type(ESP) == "table", "ESP library did not return its settings")
+        getgenv().__AstralESP = ESP
+    end
+    session.esp = ESP
+ 
+--// Master switch
+ESP.Enabled = false
+ 
+--// Enable boxes
+ESP.ShowBox = false
+ 
+--// Set the box type to corner
+ESP.BoxType = "Corner Box Esp"
+ 
+--// Enable names
+ESP.ShowName = false
+ 
+--// Enable Healthbar
+ESP.ShowHealth = false
+ 
+--// Tracer Position
+ESP.TracerPosition = "Middle"
+ 
+--// Enable tracers
+ESP.ShowTracer = false
+ 
+--// Enable Distance
+ESP.ShowDistance = false
+ 
+--// Enable Teamcheck
+ESP.Teamcheck = false
+ 
+ 
+-- ESP Toggle
+local ESP_Toggle = VisualsTab:CreateToggle({
+    name = "ESP",
+    value = false,
+    flag = "ESPToggle",
+    callback = function(Value)
+        ESP.Enabled = Value  -- Set ESP.Enabled based on the toggle
+    end,
+})
+ 
+-- Box ESP Toggle
+local BoxESP_Toggle = VisualsTab:CreateToggle({
+    name = "Box ESP",
+    value = false,
+    flag = "BoxESPToggle",
+    callback = function(Value)
+        ESP.ShowBox = Value  -- Enable or disable Box ESP
+    end,
+})
+ 
+-- TeamCheck Toggle For ESP
+local TeamCheck_Toggle = VisualsTab:CreateToggle({
+    name = "TeamCheck",
+    value = false,
+    flag = "TeamCheckToggle",
+    callback = function(Value)
+        ESP.Teamcheck = Value  -- Enable or disable TeamCheck for ESP
+    end,
+})
+ 
+-- Name ESP Toggle
+local NameESP_Toggle = VisualsTab:CreateToggle({
+    name = "Name ESP",
+    value = false,
+    flag = "NameESPToggle",
+    callback = function(Value)
+        ESP.ShowName = Value  -- Enable or disable Name ESP
+    end,
+})
+ 
+-- Health ESP Toggle
+local HealthESP_Toggle = VisualsTab:CreateToggle({
+    name = "Health ESP",
+    value = false,
+    flag = "HealthESPToggle",
+    callback = function(Value)
+        ESP.ShowHealth = Value  -- Enable or disable Health ESP
+    end,
+})
+ 
+-- Distance ESP Toggle
+local DistanceESP_Toggle = VisualsTab:CreateToggle({
+    name = "Distance ESP",
+    value = false,
+    flag = "DistanceESPToggle",
+    callback = function(Value)
+        ESP.ShowDistance = Value  -- Enable or disable Health ESP
+    end,
+})
+ 
+-- Tracer ESP Toggle
+local TracerESP_Toggle = VisualsTab:CreateToggle({
+    name = "Tracer ESP",
+    value = false,
+    flag = "TracerESPToggle",
+    callback = function(Value)
+        ESP.ShowTracer = Value  -- Enable or disable Health ESP
+    end,
+})
+ 
+local TracerDropdown = VisualsTab:CreateDropdown({
+    name = "Tracer Position",
+    options = {"Top", "Middle", "Bottom"},
+    value = "Middle",  -- Default option, change if needed
+    multiSelect = false,
+    flag = "TracerPos",
+    callback = function(Option)
+        ESP.TracerPosition = type(Option) == "table" and Option[1] or Option
+    end,
+})
+
+end
+local visualsOK, visualsError = pcall(buildVisuals)
+if not visualsOK then
+    warn("AstralClient Visuals: " .. tostring(visualsError))
+    VisualsTab:CreateText({name = "Visuals unavailable", text = tostring(visualsError)})
+end
+
+-- Team-coloured character highlights, separate from the external Drawing ESP.
+local teamHighlightsEnabled = false
+local teamHighlights = {}
+local function destroyTeamHighlights()
+    for _, highlight in pairs(teamHighlights) do highlight:Destroy() end
+    teamHighlights = {}
+end
+session.destroyTeamHighlights = destroyTeamHighlights
+VisualsTab:CreateToggle({name = "Team Colour Highlights", value = false, flag = "TeamColourHighlights",
+    callback = function(value) teamHighlightsEnabled = value; if not value then destroyTeamHighlights() end end,
+})
+track(RunService.Heartbeat:Connect(function()
+    if not session.active or Window.unloaded or not teamHighlightsEnabled then return end
+    local seen = {}
+    for _, other in ipairs(game:GetService("Players"):GetPlayers()) do
+        local current = other.Character
+        if other ~= player and current then
+            seen[other] = true
+            local h = teamHighlights[other]
+            if h and h.Adornee ~= current then h:Destroy(); h = nil end
+            if not h then
+                h = Instance.new("Highlight"); h.Name = "AstralTeamHighlight"
+                h.Adornee = current; h.FillTransparency = 0.75; h.OutlineTransparency = 0
+                h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; h.Parent = current
+                teamHighlights[other] = h
+            end
+            local color = other.Team and other.TeamColor.Color or Color3.fromRGB(200, 200, 200)
+            h.FillColor = color; h.OutlineColor = color
+        end
+    end
+    for other, h in pairs(teamHighlights) do if not seen[other] then h:Destroy(); teamHighlights[other] = nil end end
+end))
+
+-- Aim Tab
+local AimTab = Window:CreateTab({name = "Aim", icon = 7743872758})
+
+local function buildAim()
+assert(Drawing and type(Drawing.new) == "function", "Drawing API is unavailable")
+
+-- Aimbot Variables
+getgenv().aimbotEnabled = false
+getgenv().aimbotFov = 150
+getgenv().aimbotSmoothing = 0.5
+getgenv().teamCheck = false
+getgenv().holdingRightClick = false
+getgenv().aimbotPart = "Head"
+getgenv().aimbotWallCheck = false  -- Add a wall check option
+
+-- Manual velocity prediction; no assumptions about a game's projectile speed or lag compensation.
+local predictionEnabled = false
+local predictionTime = 0.10
+local verticalPrediction = 1
+local maxPredictionDistance = 0
+local projectilePrediction = false
+local projectileSpeed = 1000
+local predictionState
+
+local function finiteVector(v)
+    return v.X == v.X and v.Y == v.Y and v.Z == v.Z
+        and math.abs(v.X) < 1000000 and math.abs(v.Y) < 1000000 and math.abs(v.Z) < 1000000
+end
+-- Solve |relativePosition + velocity*t| = projectileSpeed*t for the first positive intercept.
+local function interceptTime(relative, velocity, speed)
+    local a = velocity:Dot(velocity) - speed * speed
+    local b = 2 * relative:Dot(velocity)
+    local c = relative:Dot(relative)
+    if c < 0.000001 then return 0 end
+    if math.abs(a) < 0.000001 then
+        if math.abs(b) < 0.000001 then return nil end
+        local t = -c / b
+        return t > 0 and t or nil
+    end
+    local discriminant = b * b - 4 * a * c
+    if discriminant < 0 then return nil end
+    local d = math.sqrt(discriminant)
+    local t1, t2 = (-b - d) / (2 * a), (-b + d) / (2 * a)
+    local first = t1 > 0 and t1 or math.huge
+    local second = t2 > 0 and t2 or math.huge
+    local t = math.min(first, second)
+    return t < math.huge and t or nil
+end
+local function predictedPosition(targetCharacter, targetPart, dt)
+    local position = targetPart.Position
+    if not predictionEnabled then predictionState = nil return position end
+    local root = targetCharacter:FindFirstChild("HumanoidRootPart") or targetPart
+    local rawVelocity = root.AssemblyLinearVelocity
+    if not finiteVector(rawVelocity) or not finiteVector(position) then
+        predictionState = nil
+        return position
+    end
+    -- Ignore implausible samples and clear history after teleports, target changes, or long frames.
+    if rawVelocity.Magnitude > 500 then predictionState = nil return position end
+    local reset = not predictionState or predictionState.part ~= targetPart or dt > 0.25
+    if not reset then
+        local allowedTravel = math.max(10, predictionState.velocity.Magnitude * dt * 3)
+        if (position - predictionState.position).Magnitude > allowedTravel then
+            predictionState = nil
+            return position
+        end
+    end
+    local velocity = rawVelocity
+    if not reset then
+        -- Respond immediately to stops/reversals; smooth small replication fluctuations.
+        if rawVelocity.Magnitude >= 0.5 and predictionState.velocity:Dot(rawVelocity) > 0 then
+            velocity = predictionState.velocity:Lerp(rawVelocity, 1 - math.exp(-25 * dt))
+        end
+    end
+    predictionState = {part = targetPart, position = position, velocity = velocity}
+    local leadVelocity = Vector3.new(velocity.X, velocity.Y * verticalPrediction, velocity.Z)
+    local leadTime = predictionTime
+    if projectilePrediction and workspace.CurrentCamera then
+        local relative = position - workspace.CurrentCamera.CFrame.Position + leadVelocity * predictionTime
+        local travelTime = interceptTime(relative, leadVelocity, projectileSpeed)
+        -- No possible constant-speed intercept: fall back to manual lead.
+        if travelTime then leadTime = leadTime + math.min(travelTime, 5) end
+    end
+    local offset = leadVelocity * leadTime
+    if maxPredictionDistance > 0 and offset.Magnitude > maxPredictionDistance then offset = offset.Unit * maxPredictionDistance end
+    return position + offset
+end
+
+-- Initialize FOV Circle
+local aimFovCircle = Drawing.new("Circle")
+session.circle = aimFovCircle
+aimFovCircle.Radius = getgenv().aimbotFov
+aimFovCircle.Color = Color3.fromRGB(255, 0, 0)
+aimFovCircle.Thickness = 2
+aimFovCircle.NumSides = 100
+aimFovCircle.Filled = false
+aimFovCircle.Transparency = 1
+aimFovCircle.Position = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2)
+aimFovCircle.Visible = false
+
+local function resolveTargetPart(targetCharacter)
+    if getgenv().aimbotPart == "Head" then
+        return targetCharacter:FindFirstChild("Head")
+    end
+    return targetCharacter:FindFirstChild("UpperTorso")
+        or targetCharacter:FindFirstChild("Torso")
+        or targetCharacter:FindFirstChild("LowerTorso")
+end
+
+local function wallCheck(startPos, endPos, targetCharacter)
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Exclude
+    local excluded = {workspace.CurrentCamera, targetCharacter}
+    if player.Character then table.insert(excluded, player.Character) end
+    params.FilterDescendantsInstances = excluded
+    params.IgnoreWater = true
+    return workspace:Raycast(startPos, endPos - startPos, params) ~= nil
+end
+
+-- Function to find the closest player within the FOV
+local function getClosestPlayer()
+    local closestPlayer, closestDistance = nil, getgenv().aimbotFov
+
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character then
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            local targetPart = resolveTargetPart(player.Character)
+
+            -- Ensure the target part is valid before proceeding
+            if humanoid and humanoid.Health > 0 and targetPart then
+                local skip = false
+                if getgenv().teamCheck and player.Team ~= nil and player.Team == game.Players.LocalPlayer.Team then
+                    skip = true
+                end
+
+                if not skip then
+                    local screenPoint, onScreen = workspace.CurrentCamera:WorldToViewportPoint(targetPart.Position)
+                    local distanceFromCenter = (Vector2.new(screenPoint.X, screenPoint.Y) - aimFovCircle.Position).magnitude
+
+                    if onScreen and screenPoint.Z > 0 and distanceFromCenter < closestDistance then
+                        -- Wall check before considering the player as the target
+                        if getgenv().aimbotWallCheck then
+                            local cameraPos = workspace.CurrentCamera.CFrame.Position
+                            if not wallCheck(cameraPos, targetPart.Position, player.Character) then
+                                closestDistance = distanceFromCenter
+                                closestPlayer = player
+                            end
+                        else
+                            closestDistance = distanceFromCenter
+                            closestPlayer = player
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+-- Render-time updates with frame-rate-independent camera smoothing.
+track(RunService.RenderStepped:Connect(function(dt)
+    if not session.active or Window.unloaded then return end
+    local camera = workspace.CurrentCamera
+    if not camera or not getgenv().aimbotEnabled or not getgenv().holdingRightClick
+        or Input:GetFocusedTextBox() then predictionState = nil return end
+    aimFovCircle.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+    local target = getClosestPlayer()
+    local targetCharacter = target and target.Character
+    local targetPart = targetCharacter and resolveTargetPart(targetCharacter)
+    if not targetPart then predictionState = nil return end
+    local frameTime = math.max(dt, 0.0001)
+    local targetPosition = predictedPosition(targetCharacter, targetPart, frameTime)
+    local origin = camera.CFrame.Position
+    -- Do not lead the aim point behind an obstruction when wall checking is enabled.
+    if getgenv().aimbotWallCheck and wallCheck(origin, targetPosition, targetCharacter) then
+        targetPosition = targetPart.Position
+    end
+    if not finiteVector(targetPosition) or (targetPosition - origin).Magnitude < 0.001 then return end
+    local smoothing = math.clamp(getgenv().aimbotSmoothing, 0, 1)
+    local alpha = 1 - smoothing ^ (math.min(frameTime, 0.1) * 60)
+    camera.CFrame = camera.CFrame:Lerp(CFrame.lookAt(origin, targetPosition), alpha)
+end))
+
+-- Detect Right Click Hold
+track(game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        getgenv().holdingRightClick = true
+    end
+end))
+
+track(game:GetService("UserInputService").InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        getgenv().holdingRightClick = false
+    end
+end))
+track(game:GetService("UserInputService").WindowFocusReleased:Connect(function()
+    getgenv().holdingRightClick = false
+end))
+
+-- Aimbot Toggle
+local Aimbot_Toggle = AimTab:CreateToggle({
+    name = "Aimbot",
+    value = false,
+    flag = "AimbotToggle",
+    callback = function(Value)
+        getgenv().aimbotEnabled = Value
+    end,
+})
+ 
+local Fov_Toggle = AimTab:CreateToggle({
+    name = "FOV Circle",
+    value = false,
+    flag = "FovToggle",
+    callback = function(Value)
+        aimFovCircle.Visible = Value
+    end,
+})
+ 
+local Slider = AimTab:CreateSlider({
+    name = "Aimbot FOV Radius",
+    range = {0, 500},
+    increment = 1,
+    suffix = "FOV",
+    value = getgenv().aimbotFov,
+    flag = "aimbotFov",
+    callback = function(Value)
+        getgenv().aimbotFov = Value
+        aimFovCircle.Radius = Value
+    end,
+})
+ 
+local function updateFovCirclePosition()
+    if not workspace.CurrentCamera then return end
+    aimFovCircle.Position = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2)
+end
+
+track(game:GetService("RunService").RenderStepped:Connect(updateFovCirclePosition))
+
+local Slider = AimTab:CreateSlider({
+    name = "Aimbot Smoothing",
+    range = {0, 1},
+    increment = 0.1,
+    suffix = "Smoothing",
+    value = 0.5,
+    flag = "aimbotSmoothing",
+    callback = function(Value)
+        getgenv().aimbotSmoothing = Value
+    end,
+})
+ 
+AimTab:CreateDivider({text = "Prediction"})
+AimTab:CreateToggle({
+    name = "Aimbot Prediction", value = false, flag = "AimPredictionEnabled",
+    callback = function(value) predictionEnabled = value; predictionState = nil end,
+})
+AimTab:CreateSlider({
+    name = "Prediction Lead Time", range = {0, 300}, increment = 5, suffix = "ms",
+    value = 100, flag = "AimPredictionTime",
+    callback = function(value) predictionTime = math.clamp(value, 0, 300) / 1000 end,
+})
+AimTab:CreateSlider({
+    name = "Vertical Prediction", range = {0, 100}, increment = 5, suffix = "%",
+    value = 100, flag = "AimVerticalPrediction",
+    callback = function(value) verticalPrediction = math.clamp(value, 0, 100) / 100 end,
+})
+AimTab:CreateSlider({
+    name = "Maximum Prediction Distance (0 = unlimited)", range = {0, 500}, increment = 1, suffix = "studs",
+    value = 0, flag = "AimPredictionMaxDistanceV2",
+    callback = function(value) maxPredictionDistance = math.clamp(value, 0, 500) end,
+})
+AimTab:CreateToggle({
+    name = "Projectile Travel Prediction", value = false, flag = "AimProjectilePrediction",
+    callback = function(value) projectilePrediction = value; predictionState = nil end,
+})
+AimTab:CreateSlider({
+    name = "Projectile Speed", range = {50, 10000}, increment = 25, suffix = "studs/s",
+    value = 1000, flag = "AimProjectileSpeed",
+    callback = function(value) projectileSpeed = math.clamp(value, 50, 10000) end,
+})
+AimTab:CreateText({name = "Prediction Tuning", text = "0 maximum distance removes the stud cap. For projectile weapons, enable travel prediction and enter the actual projectile speed; 1000 is only a placeholder. Manual lead adds extra time. Hitscan usually needs travel prediction off. Assumes constant target velocity and projectile speed; no bullet drop or shooter-velocity inheritance. Travel prediction is limited to 5 seconds."})
+AimTab:CreateDivider({text = "Target Filters"})
+
+local teamCheck_Toggle = AimTab:CreateToggle({
+    name = "TeamCheck",
+    value = false,
+    flag = "teamCheck",
+    callback = function(Value)
+        getgenv().teamCheck = Value
+    end,
+})
+
+local Dropdown = AimTab:CreateDropdown({
+    name = "Aimbot Part",
+    options = {"Head", "Torso"},
+    value = "Head",
+    multiSelect = false,
+    flag = "aimbotPart",
+    callback = function(Option)
+        getgenv().aimbotPart = type(Option) == "table" and Option[1] or Option
+    end,
+})
+
+local WallCheck_Toggle = AimTab:CreateToggle({
+    name = "WallCheck",
+    value = false,
+    flag = "wallCheckToggle",
+    callback = function(Value)
+        getgenv().aimbotWallCheck = Value
+    end,
+})
+ 
+local AimFovColor = AimTab:CreateColorPicker({
+    name = "FOV Radius Color",
+    color = Color3.fromRGB(255, 0, 0),
+    flag = "AimFovColor",
+    callback = function(Value)
+        aimFovCircle.Color = Value
+    end,
+})
+
+end
+local aimOK, aimError = pcall(buildAim)
+if not aimOK then
+    warn("AstralClient Aim: " .. tostring(aimError))
+    AimTab:CreateText({name = "Aim unavailable", text = tostring(aimError)})
+end
+
+-- Online actions: selection applies only to the teleport button.
+local Players = game:GetService("Players")
+local OnlineTab = Window:CreateTab({name = "Online", icon = 7743875962})
+local selectedUserId
+local onSelectionChanged
+local labelToId = {}
+local onlineStatus = OnlineTab:CreateText({name = "Player Teleport", text = "Select a player, then press Teleport to Player."})
+local function playerOptions(excludedPlayer)
+    labelToId = {}
+    local options = {}
+    for _, other in ipairs(Players:GetPlayers()) do
+        if other ~= player and other ~= excludedPlayer then
+            local label = other.DisplayName .. " (@" .. other.Name .. ")"
+            labelToId[label] = other.UserId
+            table.insert(options, label)
+        end
+    end
+    table.sort(options)
+    return options
+end
+local PlayerDropdown = OnlineTab:CreateDropdown({
+    name = "Select Player", options = playerOptions(), value = {}, multiSelect = false,
+    placeholder = "Choose a player", forgetState = true,
+    callback = function(value)
+        local label = type(value) == "table" and value[1] or value
+        local nextId = label and labelToId[label] or nil
+        if nextId ~= selectedUserId and onSelectionChanged then onSelectionChanged() end
+        selectedUserId = nextId
+    end,
+})
+local function refreshPlayers(leaving)
+    if not session.active or Window.unloaded then return end
+    local previousId = selectedUserId
+    local options = playerOptions(leaving)
+    PlayerDropdown:Refresh(options)
+    selectedUserId = nil
+    for _, label in ipairs(options) do
+        if labelToId[label] == previousId then
+            PlayerDropdown:Set(label)
+            selectedUserId = previousId
+            break
+        end
+    end
+    if not selectedUserId then PlayerDropdown:Set({}) end
+end
+track(Players.PlayerAdded:Connect(function() refreshPlayers() end))
+track(Players.PlayerRemoving:Connect(function(leaving) refreshPlayers(leaving) end))
+OnlineTab:CreateButton({name = "Refresh Player List", callback = function() refreshPlayers() end})
+OnlineTab:CreateButton({name = "Teleport to Player", callback = function()
+    local target = selectedUserId and Players:GetPlayerByUserId(selectedUserId)
+    local root = target and target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+    local hum = target and target.Character and target.Character:FindFirstChildOfClass("Humanoid")
+    if not root or not hum or hum.Health <= 0 then onlineStatus:Set("Select a player with a living character first.") return end
+    local _, message = teleportTo(root.CFrame * CFrame.new(0, 3, 5))
+    onlineStatus:Set(message)
+end})
+local details = OnlineTab:CreateText({name = "Selected Player Details", text = "No player selected."})
+local spectating = false
+local cameraBefore
+local function stopSpectate()
+    spectating = false
+    local camera = workspace.CurrentCamera
+    if camera and cameraBefore then
+        local subject = cameraBefore.subject
+        if not subject or not subject.Parent then
+            subject = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        end
+        if subject then camera.CameraSubject = subject end
+        camera.CameraType = cameraBefore.kind
+    end
+    cameraBefore = nil
+end
+session.stopSpectate = stopSpectate
+onSelectionChanged = stopSpectate
+OnlineTab:CreateButton({name = "Spectate Selected Player", callback = function()
+    local target = selectedUserId and Players:GetPlayerByUserId(selectedUserId)
+    local hum = target and target.Character and target.Character:FindFirstChildOfClass("Humanoid")
+    local camera = workspace.CurrentCamera
+    if not hum or not camera then onlineStatus:Set("Select a player with a character first.") return end
+    if not spectating then cameraBefore = {subject = camera.CameraSubject, kind = camera.CameraType} end
+    spectating = true; camera.CameraType = Enum.CameraType.Custom; camera.CameraSubject = hum
+    onlineStatus:Set("Spectating " .. target.Name)
+end})
+OnlineTab:CreateButton({name = "Stop Spectating", callback = stopSpectate})
+local detailElapsed = 0
+track(RunService.Heartbeat:Connect(function(dt)
+    detailElapsed = detailElapsed + dt
+    if detailElapsed < 0.25 or not session.active or Window.unloaded then return end
+    detailElapsed = 0
+    local target = selectedUserId and Players:GetPlayerByUserId(selectedUserId)
+    if not target then details:Set("No player selected."); if spectating then stopSpectate() end; return end
+    local current = target.Character
+    local hum = current and current:FindFirstChildOfClass("Humanoid")
+    local root = current and current:FindFirstChild("HumanoidRootPart")
+    local myRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    local distance = root and myRoot and string.format("%.0f studs", (root.Position - myRoot.Position).Magnitude) or "unavailable"
+    details:Set(string.format("%s (@%s) | ID: %s\nHealth: %s | Distance: %s | Team: %s", target.DisplayName, target.Name,
+        tostring(target.UserId), hum and string.format("%.0f / %.0f", hum.Health, hum.MaxHealth) or "respawning", distance,
+        target.Team and target.Team.Name or "Neutral"))
+    if spectating and hum and workspace.CurrentCamera then
+        workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+        workspace.CurrentCamera.CameraSubject = hum
+    end
+end))
+OnlineTab:CreateDivider({text = "Hitboxes - All Other Players"})
+OnlineTab:CreateText({name = "Hitbox Scope", text = "Applies to all other players, independently of the dropdown. Local part resizing may not affect server-validated hits."})
+local hitboxEnabled, hitboxSize, hitboxTransparency = false, 25, 0.7
+local hitboxColor = Color3.fromRGB(255, 0, 0)
+local originals = {}
+local function restoreHitbox(root, values)
+    pcall(function()
+        for property, value in pairs(values) do root[property] = value end
+    end)
+end
+local function resetHitboxes()
+    hitboxEnabled = false
+    for root, values in pairs(originals) do restoreHitbox(root, values) end
+    originals = {}
+end
+session.resetHitboxes = resetHitboxes
+local function updateHitboxes()
+    if not hitboxEnabled or not session.active or Window.unloaded then return end
+    local seen = {}
+    for _, other in ipairs(Players:GetPlayers()) do
+        if other ~= player then
+            local root = other.Character and other.Character:FindFirstChild("HumanoidRootPart")
+            local hum = other.Character and other.Character:FindFirstChildOfClass("Humanoid")
+            if root and hum and hum.Health > 0 then
+                seen[root] = true
+                pcall(function()
+                    if not originals[root] then
+                        originals[root] = {Size = root.Size, Transparency = root.Transparency,
+                            Color = root.Color, Material = root.Material, CanCollide = root.CanCollide}
+                    end
+                    root.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                    root.Transparency = hitboxTransparency
+                    root.Color = hitboxColor
+                    root.Material = Enum.Material.Neon
+                    root.CanCollide = false
+                end)
+            end
+        end
+    end
+    for root, values in pairs(originals) do
+        if not seen[root] then restoreHitbox(root, values); originals[root] = nil end
+    end
+end
+OnlineTab:CreateToggle({name = "Hitbox Extender", value = false, flag = "HitboxEnabled", forgetState = true,
+    callback = function(value)
+        if not value then resetHitboxes() else hitboxEnabled = true; updateHitboxes() end
+    end,
+})
+OnlineTab:CreateSlider({name = "Hitbox Size", range = {1, 100}, value = 25, increment = 1, suffix = "studs", flag = "HitboxSize",
+    callback = function(value) hitboxSize = value; updateHitboxes() end,
+})
+OnlineTab:CreateSlider({name = "Hitbox Transparency", range = {0, 100}, value = 70, increment = 1, suffix = "%", flag = "HitboxTransparency",
+    callback = function(value) hitboxTransparency = value / 100; updateHitboxes() end,
+})
+OnlineTab:CreateColorPicker({name = "Hitbox Color", color = hitboxColor, flag = "HitboxColor",
+    callback = function(value) hitboxColor = value; updateHitboxes() end,
+})
+track(RunService.Heartbeat:Connect(updateHitboxes))
+
+-- Settings Tab
+local SettingsTab = Window:CreateTab({name = "Settings", icon = 7734053495})
+ 
+local profileStatus = SettingsTab:CreateText({name = "Game Profiles", text = "Loading profile for game " .. gameKey})
+local profileName, selectedProfile = "", activeProfile
+local function profiles()
+    local ok, names = pcall(function() return Window:ListConfigs() end)
+    return ok and names or {}
+end
+local ProfileDropdown = SettingsTab:CreateDropdown({name = "Select Config", options = profiles(), value = {}, forgetState = true,
+    callback = function(value) selectedProfile = type(value) == "table" and value[1] or value end,
+})
+SettingsTab:CreateInput({name = "New Config Name", placeholder = "e.g. Casual or Sniper", forgetState = true,
+    callback = function(value) profileName = value:match("^%s*(.-)%s*$") end,
+})
+local function rememberProfile(name)
+    activeProfile = name; selectedProfile = name
+    Window.configuration.fileName = name
+    local ok = type(writefile) == "function" and pcall(writefile, lastProfileFile, name)
+    return ok
+end
+local function refreshProfiles()
+    ProfileDropdown:Refresh(profiles()); ProfileDropdown:Set(activeProfile)
+end
+SettingsTab:CreateButton({name = "Save Current Config", callback = function()
+    local ok, saved = pcall(function() return Window:Save(activeProfile) end)
+    if ok and saved then
+        local remembered = rememberProfile(activeProfile); refreshProfiles()
+        profileStatus:Set("Saved " .. activeProfile .. (remembered and " (remembered for this game)." or "; could not remember startup selection."))
+    else profileStatus:Set("Save failed. This environment needs working file APIs.") end
+end})
+SettingsTab:CreateButton({name = "Save As New Config", callback = function()
+    if not validProfile(profileName) then profileStatus:Set("Enter 1-48 letters, numbers, spaces, hyphens or underscores.") return end
+    for _, name in ipairs(profiles()) do
+        if name:lower() == profileName:lower() then profileStatus:Set("That config exists. Load it and use Save Current Config to overwrite.") return end
+    end
+    local ok, saved = pcall(function() return Window:Save(profileName) end)
+    if ok and saved then
+        local remembered = rememberProfile(profileName); refreshProfiles()
+        profileStatus:Set("Saved " .. activeProfile .. (remembered and " (remembered for this game)." or "; startup selection could not be saved."))
+    else profileStatus:Set("Save failed. Check file API support.") end
+end})
+SettingsTab:CreateButton({name = "Load Selected Config", callback = function()
+    if not selectedProfile then profileStatus:Set("Select a config first.") return end
+    local name = selectedProfile
+    local ok, loaded = pcall(function() return Window:Load(name) end)
+    if ok and loaded then
+        local remembered = rememberProfile(name)
+        profileStatus:Set("Loaded " .. name .. (remembered and " (next startup profile)." or "; startup selection could not be saved."))
+    else profileStatus:Set("Load failed; profile missing or invalid.") end
+end})
+SettingsTab:CreateButton({name = "Refresh Config List", callback = refreshProfiles})
+SettingsTab:CreateText({name = "Config Saving", text = "Save Current Config writes changes. Save As creates and selects a new profile. The last successfully saved or loaded profile opens first for this game. Noclip, flight, teleports, spectating and hitbox activation are not restored automatically."})
+SettingsTab:CreateDivider({text = "Session"})
+
+local QuitButton = SettingsTab:CreateButton({
+    name = "Quit To Home",
+    callback = function()
+        local LocalPlayer = game.Players.LocalPlayer
+		LocalPlayer:Kick("You have quit the game.")
+    end,
+ })
+
+SettingsTab:CreateButton({name = "Copy Discord invite", callback = function() copyDiscord() end})
+SettingsTab:CreateButton({name = "Unload AstralClient", callback = session.cleanup})
+-- Also clean up when Gen2's own unload action is used.
+task.spawn(function()
+    while session.active and not Window.unloaded do task.wait(0.25) end
+    if session.active then session.cleanup() end
+end)
+
+-- Load only after all tabs and callbacks exist. Never overwrite a failed/missing profile automatically.
+do
+    local ok, loaded = pcall(function() return Window:Load(activeProfile) end)
+    refreshProfiles()
+    profileStatus:Set(ok and loaded and ("Loaded " .. activeProfile .. " for this game.")
+        or ("No readable saved " .. activeProfile .. " config. Use Save Current Config to create it."))
+end
