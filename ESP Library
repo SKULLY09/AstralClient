@@ -31,6 +31,8 @@ local RunService = game:GetService("RunService")
 local localPlayer = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 local cache = {}
+local connections = {}
+local destroyed = false
 
 local bones = {
     {"Head", "UpperTorso"},
@@ -49,6 +51,21 @@ local bones = {
     {"RightLowerLeg", "RightFoot"}
 }
 
+local r6Bones = {
+    {"Head", "Torso"}, {"Torso", "Left Arm"}, {"Torso", "Right Arm"},
+    {"Torso", "Left Leg"}, {"Torso", "Right Leg"},
+}
+local drawingKeys = {"tracer", "boxOutline", "box", "name", "healthOutline", "health", "distance"}
+local function clearSkeleton(esp)
+    for _, data in ipairs(esp.skeletonlines) do data[1]:Remove() end
+    esp.skeletonlines = {}
+end
+local function hideEsp(esp)
+    for _, key in ipairs(drawingKeys) do esp[key].Visible = false end
+    for _, data in ipairs(esp.skeletonlines) do data[1].Visible = false end
+    for _, line in ipairs(esp.boxLines) do line.Visible = false end
+end
+
 local function create(class, properties)
     local drawing = Drawing.new(class)
     for property, value in pairs(properties) do
@@ -59,11 +76,6 @@ end
 
 local function createEsp(player)
     local esp = {
-        tracer = create("Line", {
-            Thickness = ESP_SETTINGS.TracerThickness,
-            Color = ESP_SETTINGS.TracerColor,
-            Transparency = 0.5
-        }),
         boxOutline = create("Square", {
             Color = ESP_SETTINGS.BoxOutlineColor,
             Thickness = 3,
@@ -126,14 +138,20 @@ local function removeEsp(player)
     local esp = cache[player]
     if not esp then return end
 
-    for _, drawing in pairs(esp) do
-        drawing:Remove()
-    end
+    for _, key in ipairs(drawingKeys) do esp[key]:Remove() end
+    clearSkeleton(esp)
+    for _, line in ipairs(esp.boxLines) do line:Remove() end
 
     cache[player] = nil
 end
 
 local function updateEsp()
+    if destroyed then return end
+    camera = workspace.CurrentCamera
+    if not camera then
+        for _, esp in pairs(cache) do hideEsp(esp) end
+        return
+    end
     for player, esp in pairs(cache) do
         local character, team = player.Character, player.Team
         if character and (not ESP_SETTINGS.Teamcheck or (team and team ~= localPlayer.Team)) then
@@ -142,9 +160,9 @@ local function updateEsp()
             local humanoid = character:FindFirstChild("Humanoid")
             local isBehindWall = ESP_SETTINGS.WallCheck and isPlayerBehindWall(player)
             local shouldShow = not isBehindWall and ESP_SETTINGS.Enabled
-            if rootPart and head and humanoid and shouldShow then
+            if rootPart and head and humanoid and humanoid.Health > 0 and shouldShow then
                 local position, onScreen = camera:WorldToViewportPoint(rootPart.Position)
-                if onScreen then
+                if onScreen and position.Z > 0 then
                     local hrp2D = camera:WorldToViewportPoint(rootPart.Position)
                     local charSize = (camera:WorldToViewportPoint(rootPart.Position - Vector3.new(0, 3, 0)).Y - camera:WorldToViewportPoint(rootPart.Position + Vector3.new(0, 2.6, 0)).Y) / 2
                     local boxSize = Vector2.new(math.floor(charSize * 1.8), math.floor(charSize * 1.9))
@@ -168,9 +186,8 @@ local function updateEsp()
                             esp.box.Color = ESP_SETTINGS.BoxColor
                             esp.box.Visible = true
                             esp.boxOutline.Visible = true
-                            for _, line in ipairs(esp.boxLines) do
-                                line:Remove()
-                            end
+                            for _, line in ipairs(esp.boxLines) do line:Remove() end
+                            esp.boxLines = {}
                         elseif ESP_SETTINGS.BoxType == "Corner Box Esp" then
                             local lineW = (boxSize.X / 5)
                             local lineH = (boxSize.Y / 6)
@@ -286,45 +303,39 @@ local function updateEsp()
                         esp.distance.Visible = false
                     end
 
-                    if ESP_SETTINGS.ShowSkeletons and ESP_SETTINGS.Enabled then
-                        if #esp["skeletonlines"] == 0 then
-                            for _, bonePair in ipairs(bones) do
-                                local parentBone, childBone = bonePair[1], bonePair[2]
-                                
-                                if player.Character and player.Character[parentBone] and player.Character[childBone] then
-                                    local skeletonLine = create("Line", {
-                                        Thickness = 1,
-                                        Color = ESP_SETTINGS.SkeletonsColor,
-                                        Transparency = 1
-                                    })
-                                    esp["skeletonlines"][#esp["skeletonlines"] + 1] = {skeletonLine, parentBone, childBone}
+                    if ESP_SETTINGS.ShowSkeletons then
+                        local rig = character:FindFirstChild("UpperTorso") and "R15" or "R6"
+                        if esp.skeletonCharacter ~= character or esp.skeletonRig ~= rig then
+                            clearSkeleton(esp)
+                            esp.skeletonCharacter, esp.skeletonRig = character, rig
+                        end
+                        if #esp.skeletonlines == 0 then
+                            for _, pair in ipairs(rig == "R15" and bones or r6Bones) do
+                                table.insert(esp.skeletonlines, {create("Line", {
+                                    Thickness = 1, Color = ESP_SETTINGS.SkeletonsColor,
+                                    Transparency = 1, Visible = false,
+                                }), pair[1], pair[2]})
+                            end
+                        end
+                        for _, data in ipairs(esp.skeletonlines) do
+                            local line = data[1]
+                            local parent = character:FindFirstChild(data[2])
+                            local child = character:FindFirstChild(data[3])
+                            line.Visible = false
+                            if parent and child and parent:IsA("BasePart") and child:IsA("BasePart") then
+                                local p, pVisible = camera:WorldToViewportPoint(parent.Position)
+                                local c, cVisible = camera:WorldToViewportPoint(child.Position)
+                                if p.Z > 0 and c.Z > 0 and (pVisible or cVisible) then
+                                    line.From = Vector2.new(p.X, p.Y)
+                                    line.To = Vector2.new(c.X, c.Y)
+                                    line.Color = ESP_SETTINGS.SkeletonsColor
+                                    line.Visible = true
                                 end
                             end
                         end
-                    
-                        for _, lineData in ipairs(esp["skeletonlines"]) do
-                            local skeletonLine = lineData[1]
-                            local parentBone, childBone = lineData[2], lineData[3]
-                    
-                            if player.Character and player.Character[parentBone] and player.Character[childBone] then
-                                local parentPosition = camera:WorldToViewportPoint(player.Character[parentBone].Position)
-                                local childPosition = camera:WorldToViewportPoint(player.Character[childBone].Position)
-                    
-                                skeletonLine.From = Vector2.new(parentPosition.X, parentPosition.Y)
-                                skeletonLine.To = Vector2.new(childPosition.X, childPosition.Y)
-                                skeletonLine.Color = ESP_SETTINGS.SkeletonsColor
-                                skeletonLine.Visible = true
-                            else
-                                skeletonLine:Remove()
-                            end
-                        end
                     else
-                        for _, lineData in ipairs(esp["skeletonlines"]) do
-                            local skeletonLine = lineData[1]
-                            skeletonLine:Remove()
-                        end
-                        esp["skeletonlines"] = {}
-                    end                    
+                        for _, data in ipairs(esp.skeletonlines) do data[1].Visible = false end
+                    end
 
                     if ESP_SETTINGS.ShowTracer and ESP_SETTINGS.Enabled then
                         local tracerY
@@ -346,46 +357,13 @@ local function updateEsp()
                         esp.tracer.Visible = false
                     end
                 else
-                    for _, drawing in pairs(esp) do
-                        drawing.Visible = false
-                    end
-                    for _, lineData in ipairs(esp["skeletonlines"]) do
-                        local skeletonLine = lineData[1]
-                        skeletonLine:Remove()
-                    end
-                    esp["skeletonlines"] = {}
-                    for _, line in ipairs(esp.boxLines) do
-                        line:Remove()
-                    end
-                    esp.boxLines = {}
+                    hideEsp(esp)
                 end
             else
-                for _, drawing in pairs(esp) do
-                    drawing.Visible = false
-                end
-                for _, lineData in ipairs(esp["skeletonlines"]) do
-                    local skeletonLine = lineData[1]
-                    skeletonLine:Remove()
-                end
-                esp["skeletonlines"] = {}
-                for _, line in ipairs(esp.boxLines) do
-                    line:Remove()
-                end
-                esp.boxLines = {}
+                hideEsp(esp)
             end
         else
-            for _, drawing in pairs(esp) do
-                drawing.Visible = false
-            end
-            for _, lineData in ipairs(esp["skeletonlines"]) do
-                local skeletonLine = lineData[1]
-                skeletonLine:Remove()
-            end
-            esp["skeletonlines"] = {}
-            for _, line in ipairs(esp.boxLines) do
-                line:Remove()
-            end
-            esp.boxLines = {}
+            hideEsp(esp)
         end
     end
 end
@@ -396,15 +374,23 @@ for _, player in ipairs(Players:GetPlayers()) do
     end
 end
 
-Players.PlayerAdded:Connect(function(player)
+connections[#connections + 1] = Players.PlayerAdded:Connect(function(player)
     if player ~= localPlayer then
         createEsp(player)
     end
 end)
 
-Players.PlayerRemoving:Connect(function(player)
+connections[#connections + 1] = Players.PlayerRemoving:Connect(function(player)
     removeEsp(player)
 end)
 
-RunService.RenderStepped:Connect(updateEsp)
+connections[#connections + 1] = RunService.RenderStepped:Connect(updateEsp)
+function ESP_SETTINGS.Destroy()
+    if destroyed then return end
+    destroyed = true
+    ESP_SETTINGS.Enabled = false
+    for _, connection in ipairs(connections) do connection:Disconnect() end
+    local players = {}; for player in pairs(cache) do table.insert(players, player) end
+    for _, player in ipairs(players) do removeEsp(player) end
+end
 return ESP_SETTINGS
