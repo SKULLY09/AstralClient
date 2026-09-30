@@ -336,8 +336,7 @@ PlayerTab:CreateToggle({
         if not value then hideTeleportMarker() end
     end,
 })
-local clickStatus = PlayerTab:CreateText({name = "Click Teleport", text = "Hold Ctrl to preview. Left-click to move your character's root to the green ball. No ball means no destination."})
-local GuiService = game:GetService("GuiService")
+local clickStatus = PlayerTab:CreateText({name = "Click Teleport", text = "Hold Ctrl to mark a surface. Left-click to land with your feet at that point. No marker means no destination."})
 track(RunService.RenderStepped:Connect(function()
     if not session.active or Window.unloaded or not clickTeleportEnabled or not focused
         or not controlHeld() or Input:GetFocusedTextBox() then hideTeleportMarker() return end
@@ -347,8 +346,8 @@ track(RunService.RenderStepped:Connect(function()
     local hum = current and current:FindFirstChildOfClass("Humanoid")
     if not camera or not root or not hum or hum.Health <= 0 or hum.Sit then hideTeleportMarker() return end
     local cursor = Input:GetMouseLocation()
-    local inset = GuiService:GetGuiInset()
-    local ray = camera:ViewportPointToRay(cursor.X - inset.X, cursor.Y - inset.Y)
+    -- Mouse screen coordinates map directly to the viewport ray; do not subtract the top bar.
+    local ray = camera:ViewportPointToRay(cursor.X, cursor.Y)
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Exclude
     -- Ignore characters (including enlarged hitboxes), camera effects and our own preview.
@@ -364,7 +363,7 @@ track(RunService.RenderStepped:Connect(function()
     local standingHeight = hum.HipHeight + root.Size.Y / 2
     local leg = current:FindFirstChild("Left Leg") -- R6 HipHeight does not include leg length.
     if leg then standingHeight = standingHeight + leg.Size.Y end
-    local position = hit.Position + Vector3.new(0, standingHeight + 0.15, 0)
+    local position = hit.Position + Vector3.new(0, standingHeight + 0.05, 0)
     -- Add outward clearance on walls while keeping the preview upright.
     if hit.Normal.Y < 0.5 then
         position = position + hit.Normal * (math.max(root.Size.X, root.Size.Z) / 2 + 0.15)
@@ -384,7 +383,8 @@ track(RunService.RenderStepped:Connect(function()
         teleportMarker.CastShadow = false
         teleportMarker.Transparency = 0.15
     end
-    teleportMarker.CFrame = previewDestination
+    -- Keep the marker centred on the actual surface, separate from root clearance.
+    teleportMarker.CFrame = CFrame.new(hit.Position)
     teleportMarker.Parent = workspace
 end))
 track(Input.WindowFocusReleased:Connect(hideTeleportMarker))
