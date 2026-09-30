@@ -466,7 +466,7 @@ local function buildVisuals()
     assert(Drawing and type(Drawing.new) == "function", "Drawing API is unavailable")
     ESP = getgenv().__AstralESP
     if not ESP then
-        ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/linemaster2/esp-library/main/library.lua"))()
+        ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/SKULLY09/AstralClient/refs/heads/main/ESP%20Library"))()
         assert(type(ESP) == "table", "ESP library did not return its settings")
         getgenv().__AstralESP = ESP
     end
