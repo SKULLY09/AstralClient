@@ -584,6 +584,14 @@ VisualsTab:CreateToggle({
     end,
 })
 
+VisualsTab:CreateSlider({
+    name = "Skeleton Line Thickness",
+    range = {1, 10}, increment = 1, suffix = "px",
+    value = 2, flag = "SkeletonLineThickness",
+    callback = function(value)
+        ESP.SkeletonThickness = math.clamp(value, 1, 10)
+    end,
+})
 -- Tracer ESP Toggle
 local TracerESP_Toggle = VisualsTab:CreateToggle({
     name = "Tracer ESP",
@@ -594,14 +602,6 @@ local TracerESP_Toggle = VisualsTab:CreateToggle({
     end,
 })
  
-VisualsTab:CreateSlider({
-    name = "Skeleton Line Thickness",
-    range = {1, 10}, increment = 1, suffix = "px",
-    value = 2, flag = "SkeletonLineThickness",
-    callback = function(value)
-        ESP.SkeletonThickness = math.clamp(value, 1, 10)
-    end,
-})
 VisualsTab:CreateSlider({
     name = "Tracer Line Thickness",
     range = {1, 10}, increment = 1, suffix = "px",
