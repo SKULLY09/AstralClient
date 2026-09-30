@@ -16,6 +16,7 @@ local function track(connection)
 end
 function session.cleanup()
     session.active = false
+    if session.destroyTeleportMarker then session.destroyTeleportMarker() end
     if session.stopNoclip then session.stopNoclip() end
     if session.stopSpectate then session.stopSpectate() end
     if session.destroyTeamHighlights then session.destroyTeamHighlights() end
@@ -316,29 +317,94 @@ local function teleportTo(destination)
     return ok, ok and "Teleported." or tostring(err)
 end
 local clickTeleportEnabled = false
+local teleportMarker, previewDestination
+local function hideTeleportMarker()
+    previewDestination = nil
+    if teleportMarker then teleportMarker.Parent = nil end
+end
+session.destroyTeleportMarker = function()
+    previewDestination = nil
+    if teleportMarker then teleportMarker:Destroy(); teleportMarker = nil end
+end
+local function controlHeld()
+    return Input:IsKeyDown(Enum.KeyCode.LeftControl) or Input:IsKeyDown(Enum.KeyCode.RightControl)
+end
 PlayerTab:CreateToggle({
     name = "Ctrl + Click Teleport", value = false, flag = "CtrlClickTeleport", forgetState = true,
-    callback = function(value) clickTeleportEnabled = value end,
+    callback = function(value)
+        clickTeleportEnabled = value
+        if not value then hideTeleportMarker() end
+    end,
 })
-local clickStatus = PlayerTab:CreateText({name = "Click Teleport", text = "Enable, then hold Ctrl and left-click a surface. Server rules may reject teleporting."})
-track(Input.InputBegan:Connect(function(input, processed)
-    if processed or not session.active or Window.unloaded or not clickTeleportEnabled
-        or Input:GetFocusedTextBox() or input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-    if not (Input:IsKeyDown(Enum.KeyCode.LeftControl) or Input:IsKeyDown(Enum.KeyCode.RightControl)) then return end
+local clickStatus = PlayerTab:CreateText({name = "Click Teleport", text = "Hold Ctrl to preview. Left-click to move your character's root to the green ball. No ball means no destination."})
+local GuiService = game:GetService("GuiService")
+track(RunService.RenderStepped:Connect(function()
+    if not session.active or Window.unloaded or not clickTeleportEnabled or not focused
+        or not controlHeld() or Input:GetFocusedTextBox() then hideTeleportMarker() return end
     local camera = workspace.CurrentCamera
-    if not camera then return end
+    local current = player.Character
+    local root = current and current:FindFirstChild("HumanoidRootPart")
+    local hum = current and current:FindFirstChildOfClass("Humanoid")
+    if not camera or not root or not hum or hum.Health <= 0 or hum.Sit then hideTeleportMarker() return end
     local cursor = Input:GetMouseLocation()
-    local ray = camera:ScreenPointToRay(cursor.X, cursor.Y)
+    local inset = GuiService:GetGuiInset()
+    local ray = camera:ViewportPointToRay(cursor.X - inset.X, cursor.Y - inset.Y)
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Exclude
-    params.FilterDescendantsInstances = player.Character and {player.Character} or {}
+    -- Ignore characters (including enlarged hitboxes), camera effects and our own preview.
+    local excluded = {camera}
+    if teleportMarker then table.insert(excluded, teleportMarker) end
+    for _, other in ipairs(game:GetService("Players"):GetPlayers()) do
+        if other.Character then table.insert(excluded, other.Character) end
+    end
+    params.FilterDescendantsInstances = excluded
+    params.IgnoreWater = true
     local hit = workspace:Raycast(ray.Origin, ray.Direction * 10000, params)
-    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-    if not hit or not root or not hum then clickStatus:Set("No surface or character found.") return end
-    local clearance = math.max(3, hum.HipHeight + root.Size.Y / 2 + 0.5)
-    local _, message = teleportTo(CFrame.new(hit.Position + hit.Normal * clearance) * root.CFrame.Rotation)
+    if not hit then hideTeleportMarker() return end
+    local standingHeight = hum.HipHeight + root.Size.Y / 2
+    local leg = current:FindFirstChild("Left Leg") -- R6 HipHeight does not include leg length.
+    if leg then standingHeight = standingHeight + leg.Size.Y end
+    local position = hit.Position + Vector3.new(0, standingHeight + 0.15, 0)
+    -- Add outward clearance on walls while keeping the preview upright.
+    if hit.Normal.Y < 0.5 then
+        position = position + hit.Normal * (math.max(root.Size.X, root.Size.Z) / 2 + 0.15)
+    end
+    previewDestination = CFrame.new(position) * root.CFrame.Rotation
+    if not teleportMarker then
+        teleportMarker = Instance.new("Part")
+        teleportMarker.Name = "AstralTeleportPreview"
+        teleportMarker.Shape = Enum.PartType.Ball
+        teleportMarker.Size = Vector3.new(0.65, 0.65, 0.65)
+        teleportMarker.Color = Color3.fromRGB(40, 255, 80)
+        teleportMarker.Material = Enum.Material.Neon
+        teleportMarker.Anchored = true
+        teleportMarker.CanCollide = false
+        teleportMarker.CanTouch = false
+        teleportMarker.CanQuery = false
+        teleportMarker.CastShadow = false
+        teleportMarker.Transparency = 0.15
+    end
+    teleportMarker.CFrame = previewDestination
+    teleportMarker.Parent = workspace
+end))
+track(Input.WindowFocusReleased:Connect(hideTeleportMarker))
+track(Input.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+        if not controlHeld() then hideTeleportMarker() end
+    end
+end))
+track(player.CharacterRemoving:Connect(hideTeleportMarker))
+track(Input.InputBegan:Connect(function(input, processed)
+    if processed or not session.active or Window.unloaded or not clickTeleportEnabled or not focused
+        or Input:GetFocusedTextBox() or input.UserInputType ~= Enum.UserInputType.MouseButton1
+        or not controlHeld() then return end
+    if not previewDestination or not teleportMarker or not teleportMarker.Parent then
+        clickStatus:Set("No destination. Aim at a surface while holding Ctrl.") return
+    end
+    -- Use precisely the last displayed destination; do not cast a different click-time ray.
+    local _, message = teleportTo(previewDestination)
     clickStatus:Set(message)
+    hideTeleportMarker()
 end))
 
 -- World
@@ -914,36 +980,6 @@ local Slider = AimTab:CreateSlider({
     end,
 })
  
-AimTab:CreateDivider({text = "Prediction"})
-AimTab:CreateToggle({
-    name = "Aimbot Prediction", value = false, flag = "AimPredictionEnabled",
-    callback = function(value) predictionEnabled = value; predictionState = nil end,
-})
-AimTab:CreateSlider({
-    name = "Prediction Lead Time", range = {0, 300}, increment = 5, suffix = "ms",
-    value = 100, flag = "AimPredictionTime",
-    callback = function(value) predictionTime = math.clamp(value, 0, 300) / 1000 end,
-})
-AimTab:CreateSlider({
-    name = "Vertical Prediction", range = {0, 100}, increment = 5, suffix = "%",
-    value = 100, flag = "AimVerticalPrediction",
-    callback = function(value) verticalPrediction = math.clamp(value, 0, 100) / 100 end,
-})
-AimTab:CreateSlider({
-    name = "Maximum Prediction Distance (0 = unlimited)", range = {0, 500}, increment = 1, suffix = "studs",
-    value = 0, flag = "AimPredictionMaxDistanceV2",
-    callback = function(value) maxPredictionDistance = math.clamp(value, 0, 500) end,
-})
-AimTab:CreateToggle({
-    name = "Projectile Travel Prediction", value = false, flag = "AimProjectilePrediction",
-    callback = function(value) projectilePrediction = value; predictionState = nil end,
-})
-AimTab:CreateSlider({
-    name = "Projectile Speed", range = {50, 10000}, increment = 25, suffix = "studs/s",
-    value = 1000, flag = "AimProjectileSpeed",
-    callback = function(value) projectileSpeed = math.clamp(value, 50, 10000) end,
-})
-AimTab:CreateText({name = "Prediction Tuning", text = "0 maximum distance removes the stud cap. For projectile weapons, enable travel prediction and enter the actual projectile speed; 1000 is only a placeholder. Manual lead adds extra time. Hitscan usually needs travel prediction off. Assumes constant target velocity and projectile speed; no bullet drop or shooter-velocity inheritance. Travel prediction is limited to 5 seconds."})
 AimTab:CreateDivider({text = "Target Filters"})
 
 local teamCheck_Toggle = AimTab:CreateToggle({
@@ -975,6 +1011,36 @@ local WallCheck_Toggle = AimTab:CreateToggle({
     end,
 })
  
+AimTab:CreateDivider({text = "Prediction"})
+AimTab:CreateToggle({
+    name = "Aimbot Prediction", value = false, flag = "AimPredictionEnabled",
+    callback = function(value) predictionEnabled = value; predictionState = nil end,
+})
+AimTab:CreateSlider({
+    name = "Prediction Lead Time", range = {0, 300}, increment = 5, suffix = "ms",
+    value = 100, flag = "AimPredictionTime",
+    callback = function(value) predictionTime = math.clamp(value, 0, 300) / 1000 end,
+})
+AimTab:CreateSlider({
+    name = "Vertical Prediction", range = {0, 100}, increment = 5, suffix = "%",
+    value = 100, flag = "AimVerticalPrediction",
+    callback = function(value) verticalPrediction = math.clamp(value, 0, 100) / 100 end,
+})
+AimTab:CreateSlider({
+    name = "Maximum Prediction Distance (0 = unlimited)", range = {0, 500}, increment = 1, suffix = "studs",
+    value = 0, flag = "AimPredictionMaxDistanceV2",
+    callback = function(value) maxPredictionDistance = math.clamp(value, 0, 500) end,
+})
+AimTab:CreateToggle({
+    name = "Projectile Travel Prediction", value = false, flag = "AimProjectilePrediction",
+    callback = function(value) projectilePrediction = value; predictionState = nil end,
+})
+AimTab:CreateSlider({
+    name = "Projectile Speed", range = {50, 10000}, increment = 25, suffix = "studs/s",
+    value = 1000, flag = "AimProjectileSpeed",
+    callback = function(value) projectileSpeed = math.clamp(value, 50, 10000) end,
+})
+AimTab:CreateText({name = "Prediction Tuning", text = "0 maximum distance removes the stud cap. For projectile weapons, enable travel prediction and enter the actual projectile speed; 1000 is only a placeholder. Manual lead adds extra time. Hitscan usually needs travel prediction off. Assumes constant target velocity and projectile speed; no bullet drop or shooter-velocity inheritance. Travel prediction is limited to 5 seconds."})
 local AimFovColor = AimTab:CreateColorPicker({
     name = "FOV Radius Color",
     color = Color3.fromRGB(255, 0, 0),
@@ -1049,9 +1115,11 @@ OnlineTab:CreateButton({name = "Teleport to Player", callback = function()
 end})
 local details = OnlineTab:CreateText({name = "Selected Player Details", text = "No player selected."})
 local spectating = false
+local SpectateToggle
 local cameraBefore
 local function stopSpectate()
     spectating = false
+    if SpectateToggle and not Window.unloaded then SpectateToggle:Set(false, true) end
     local camera = workspace.CurrentCamera
     if camera and cameraBefore then
         local subject = cameraBefore.subject
@@ -1065,16 +1133,23 @@ local function stopSpectate()
 end
 session.stopSpectate = stopSpectate
 onSelectionChanged = stopSpectate
-OnlineTab:CreateButton({name = "Spectate Selected Player", callback = function()
-    local target = selectedUserId and Players:GetPlayerByUserId(selectedUserId)
-    local hum = target and target.Character and target.Character:FindFirstChildOfClass("Humanoid")
-    local camera = workspace.CurrentCamera
-    if not hum or not camera then onlineStatus:Set("Select a player with a character first.") return end
-    if not spectating then cameraBefore = {subject = camera.CameraSubject, kind = camera.CameraType} end
-    spectating = true; camera.CameraType = Enum.CameraType.Custom; camera.CameraSubject = hum
-    onlineStatus:Set("Spectating " .. target.Name)
-end})
-OnlineTab:CreateButton({name = "Stop Spectating", callback = stopSpectate})
+SpectateToggle = OnlineTab:CreateToggle({
+    name = "Spectate Selected Player", value = false, flag = "SpectatePlayer", forgetState = true,
+    callback = function(value)
+        if not value then stopSpectate() return end
+        local target = selectedUserId and Players:GetPlayerByUserId(selectedUserId)
+        local hum = target and target.Character and target.Character:FindFirstChildOfClass("Humanoid")
+        local camera = workspace.CurrentCamera
+        if not hum or hum.Health <= 0 or not camera then
+            stopSpectate(); onlineStatus:Set("Select a player with a living character first.") return
+        end
+        if not spectating then cameraBefore = {subject = camera.CameraSubject, kind = camera.CameraType} end
+        spectating = true
+        camera.CameraType = Enum.CameraType.Custom
+        camera.CameraSubject = hum
+        onlineStatus:Set("Spectating " .. target.Name)
+    end,
+})
 local detailElapsed = 0
 track(RunService.Heartbeat:Connect(function(dt)
     detailElapsed = detailElapsed + dt
