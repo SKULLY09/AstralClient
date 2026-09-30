@@ -24,7 +24,10 @@ function session.cleanup()
     if session.stopFullbright then session.stopFullbright() end
     for _, connection in ipairs(session.connections) do connection:Disconnect() end
     session.connections = {}
-    if session.esp then session.esp.Enabled = false end
+    if session.esp then
+        session.esp.Enabled = false
+        if session.esp.Destroy then session.esp.Destroy() end
+    end
     if session.circle then pcall(function() session.circle:Remove() end) end
     if Window and not Window.unloaded then Window:Unload() end
 end
@@ -464,13 +467,23 @@ local VisualsTab = Window:CreateTab({name = "Visuals", icon = 7733774602})
 local ESP
 local function buildVisuals()
     assert(Drawing and type(Drawing.new) == "function", "Drawing API is unavailable")
-    ESP = getgenv().__AstralESP
-    if not ESP then
-        ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/SKULLY09/AstralClient/refs/heads/main/ESP%20Library"))()
-        assert(type(ESP) == "table", "ESP library did not return its settings")
-        getgenv().__AstralESP = ESP
-    end
+    -- Fetch the user's editable library on every fresh execution.
+    local espURL = "https://raw.githubusercontent.com/SKULLY09/AstralClient/refs/heads/main/ESP%20Library"
+    local source = game:HttpGet(espURL)
+    assert(type(source) == "string" and #source > 0, "ESP library download was empty")
+    local chunk, compileError = loadstring(source)
+    assert(chunk, "ESP library compile error: " .. tostring(compileError))
+    ESP = chunk()
+    assert(type(ESP) == "table", "ESP library must return its settings table")
     session.esp = ESP
+    local espStatus = VisualsTab:CreateText({name = "ESP Status", text = "Renderer ready. Enable ESP and Skeleton ESP."})
+    local lastEspError
+    track(RunService.Heartbeat:Connect(function()
+        if ESP.LastError and ESP.LastError ~= lastEspError then
+            lastEspError = ESP.LastError
+            espStatus:Set("Render error: " .. ESP.LastError)
+        end
+    end))
  
 --// Master switch
 ESP.Enabled = false
@@ -564,7 +577,6 @@ local DistanceESP_Toggle = VisualsTab:CreateToggle({
 -- Uses the skeleton renderer supplied by the current ESP library.
 VisualsTab:CreateToggle({
     name = "Skeleton ESP",
-    description = "Enable the main ESP toggle too. The current renderer uses R15 body parts.",
     value = false,
     flag = "SkeletonESPToggle",
     callback = function(value)
@@ -582,6 +594,23 @@ local TracerESP_Toggle = VisualsTab:CreateToggle({
     end,
 })
  
+VisualsTab:CreateSlider({
+    name = "Skeleton Line Thickness",
+    range = {1, 10}, increment = 1, suffix = "px",
+    value = 2, flag = "SkeletonLineThickness",
+    callback = function(value)
+        ESP.SkeletonThickness = math.clamp(value, 1, 10)
+    end,
+})
+VisualsTab:CreateSlider({
+    name = "Tracer Line Thickness",
+    range = {1, 10}, increment = 1, suffix = "px",
+    value = 2, flag = "TracerLineThickness",
+    callback = function(value)
+        ESP.TracerThickness = math.clamp(value, 1, 10)
+    end,
+})
+
 local TracerDropdown = VisualsTab:CreateDropdown({
     name = "Tracer Position",
     options = {"Top", "Middle", "Bottom"},
