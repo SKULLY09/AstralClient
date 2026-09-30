@@ -21,6 +21,7 @@ local ESP_SETTINGS = {
     ShowTracer = false,
     TracerColor = Color3.new(1, 1, 1), 
     TracerThickness = 2,
+    SkeletonThickness = 2,
     SkeletonsColor = Color3.new(1, 1, 1),
     TracerPosition = "Bottom",
 }
@@ -170,7 +171,7 @@ local function updatePlayer(player, esp)
                         if #esp.skeletonlines == 0 then
                             for _, pair in ipairs(rig == "R15" and bones or r6Bones) do
                                 table.insert(esp.skeletonlines, {create("Line", {
-                                    Thickness = 2, Color = ESP_SETTINGS.SkeletonsColor,
+                                    Thickness = ESP_SETTINGS.SkeletonThickness, Color = ESP_SETTINGS.SkeletonsColor,
                                     Transparency = 1, Visible = false,
                                 }), pair[1], pair[2]})
                             end
@@ -186,6 +187,7 @@ local function updatePlayer(player, esp)
                                 if p.Z > 0 and c.Z > 0 and (pVisible or cVisible) then
                                     line.From = Vector2.new(p.X, p.Y)
                                     line.To = Vector2.new(c.X, c.Y)
+                                    line.Thickness = math.clamp(tonumber(ESP_SETTINGS.SkeletonThickness) or 2, 1, 10)
                                     line.Color = ESP_SETTINGS.SkeletonsColor
                                     line.Visible = true
                                 end
@@ -343,6 +345,7 @@ local function updatePlayer(player, esp)
                     end
 
                     if ESP_SETTINGS.ShowTracer and ESP_SETTINGS.Enabled then
+                        esp.tracer.Thickness = math.clamp(tonumber(ESP_SETTINGS.TracerThickness) or 2, 1, 10)
                         local tracerY
                         if ESP_SETTINGS.TracerPosition == "Top" then
                             tracerY = 0
