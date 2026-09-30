@@ -492,6 +492,7 @@ ESP.TracerPosition = "Middle"
  
 --// Enable tracers
 ESP.ShowTracer = false
+ESP.ShowSkeletons = false
  
 --// Enable Distance
 ESP.ShowDistance = false
@@ -560,6 +561,17 @@ local DistanceESP_Toggle = VisualsTab:CreateToggle({
     end,
 })
  
+-- Uses the skeleton renderer supplied by the current ESP library.
+VisualsTab:CreateToggle({
+    name = "Skeleton ESP",
+    description = "Enable the main ESP toggle too. The current renderer uses R15 body parts.",
+    value = false,
+    flag = "SkeletonESPToggle",
+    callback = function(value)
+        ESP.ShowSkeletons = value
+    end,
+})
+
 -- Tracer ESP Toggle
 local TracerESP_Toggle = VisualsTab:CreateToggle({
     name = "Tracer ESP",
